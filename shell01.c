@@ -35,7 +35,7 @@ char *strjn(char *str1, char *str2)
 int main(int argc, char *argv[],
 		char *env[])
 {
-
+	char *str;
 	/**
 	 *  if there is only one argument passed,
 	 * the program should enter into interactive mode
@@ -43,7 +43,13 @@ int main(int argc, char *argv[],
 	 */
 	if (argc == 1)
 		interactive(env);
+	str = argv[1];
 	createargv(argc, argv, NULL, "main");
+	if (checkfile(argv[0]) == -1)
+	{
+		perror(str);
+		exit(EXIT_FAILURE);
+	}
 	execve(argv[0], argv, env);
 	perror("execve");
 	return (0);
@@ -58,7 +64,7 @@ int main(int argc, char *argv[],
  */
 void interactive(char *env[])
 {
-	char *ptr = NULL, prompt[] = " ($)", *exarg[20];
+	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	pid_t session;
 	size_t size = 0;
 	int wstatus;
@@ -75,8 +81,14 @@ void interactive(char *env[])
 		 * mode, if stripped string is "exit"
 		 */
 		createargv(0, exarg, stripstr(ptr), "interactive");
+		str = exarg[0];
 		if (withbin(exarg[0]) == -1 && exarg[0] != NULL)
 			exarg[0] = strjn("/bin/", exarg[0]);
+		if (checkfile(exarg[0]) == -1)
+		{
+			perror(str);
+			continue;
+		}
 		session = fork();
 		if (session == -1)
 		{
