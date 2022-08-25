@@ -14,4 +14,5 @@ void interactive(void);
 int checkfile(char *);
 int withbin(char *);
 char *stripstr(char *);
+void createargv(int, char *[], char *, char []);
 #endif

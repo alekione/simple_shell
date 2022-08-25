@@ -40,6 +40,8 @@ char *stripstr(char *str)
 {
 	int len = strlen(str);
 
+	if (len == 1)
+		return (NULL);
 	*(str + len - 1) = '\0';
 	return (str);
 }
