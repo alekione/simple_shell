@@ -12,4 +12,6 @@
 char *strjn(char *, char*);
 void interactive(void);
 int checkfile(char *);
+int withbin(char *);
+char *stripstr(char *);
 #endif

@@ -18,7 +18,7 @@ char *strjn(char *str1, char *str2)
 		str[i] = str1[i];
 	for (i = 0; i < len2; i++)
 		str[i + len1] = str2[i];
-	str[len1 + len2 - 1] = '\0';
+	str[len1 + len2] = '\0';
 	return (str);
 }
 
@@ -33,7 +33,7 @@ char *strjn(char *str1, char *str2)
 int main(int argc, char *argv[],
 		char __attribute__((unused)) *env[])
 {
-	char *exarg[] = {NULL}, *exarg2[] = {NULL};
+	char *exarg[] = {NULL, NULL, NULL,NULL}, *exenv[] = {NULL};
 
 	/* if there is only one argument passed,
 	 * the program should enter into interactive mode
@@ -45,7 +45,10 @@ int main(int argc, char *argv[],
 	}
 	if (argc == 2)
 	{
-		execve(argv[1], exarg, exarg2);
+		exarg[0] = argv[1];
+		if (withbin(argv[1]) == -1)
+			exarg[0] = strjn("/bin/", argv[1]);
+		execve(exarg[0], exarg, exenv);
 		perror("execve");
 	}
 	return (0);
@@ -59,8 +62,8 @@ int main(int argc, char *argv[],
  */
 void interactive(void)
 {
-	char *sptr, *ptr = NULL, *str = "/bin/", prompt[] = " ($)";
-	char *exarg[] = {NULL}, *exarg2[] = {NULL};
+	char *ptr = NULL, prompt[] = " ($)";
+	char *exarg[] = {NULL, NULL, NULL, NULL}, *exenv[] = {NULL};
 	pid_t session;
 	size_t size = 0;
 
@@ -68,7 +71,15 @@ void interactive(void)
 	{
 		write(1, &prompt, 4);
 		getline(&ptr, &size, stdin);
-		sptr = strjn(str, ptr);
+		/**
+		 * i found that getline method, is adding another char at the end
+		 * the char is causing the program to crash so,
+		 * so it has to be stripped before continuing with the program.
+		 * stripstr() is used to do this
+		 */
+		exarg[0] = stripstr(ptr);
+		if (withbin(ptr) == -1)
+			exarg[0] = strjn("/bin/", exarg[0]);
 		session = fork();
 		if (session == -1)
 		{
@@ -77,7 +88,7 @@ void interactive(void)
 		}
 		if (session == 0)
 		{
-			execve(sptr, exarg, exarg2);
+			execve(exarg[0], exarg, exenv);
 			perror("execve");
 			sleep(1);
 			_exit(session);
