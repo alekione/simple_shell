@@ -36,7 +36,8 @@ int main(int argc, char *argv[],
 		char *env[])
 {
 
-	/* if there is only one argument passed,
+	/**
+	 *  if there is only one argument passed,
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
@@ -52,6 +53,7 @@ int main(int argc, char *argv[],
  * interactive - the interactive section is controlled by this function.
  * Works like a shell inside a shell i.e.,
  * it creates its own prompt and execute commands passed into it
+ * @env: pointer arrays holding enviroment/global values
  * It does not return anything
  */
 void interactive(char *env[])
@@ -69,7 +71,7 @@ void interactive(char *env[])
 		 * i found that getline method, is adding '\n'  char at the end
 		 * the char is causing the program to give unexpected results,
 		 * so it has to be stripped before continuing with the program.
-		 * stripstr() is used to do this, and also to exit interactive 
+		 * stripstr() is used to do this, and also to exit interactive
 		 * mode, if stripped string is "exit"
 		 */
 		createargv(0, exarg, stripstr(ptr), "interactive");
@@ -94,19 +96,19 @@ void interactive(char *env[])
 
 /**
  * createargv - is used to create character pointer array, for execve() method
- * 	that is used to run commands.
- * 	Since in main, the number of arguments passed is already given, so
- * 	we pass it as argc in this function.
- * 	On interactive shell the number of passed args is not determined unless
- * 	it's calculated manually here.
+ *	that is used to run commands.
+ *	Since in main, the number of arguments passed is already given, so
+ *	we pass it as argc in this function.
+ *	On interactive shell the number of passed args is not determined unless
+ *	it's calculated manually here.
  * @argc: argv counter as given from the main function
- * @argv: arguments passed to the function, from the main and a NULL 
- * 	pointer from interactive shell
+ * @argv: arguments passed to the function, from the main and a NULL
+ *	pointer from interactive shell
  * @str: string holding the passed arguments, the main function passes NULL
- * 	while interactive shell passes argument from the user
+ *	while interactive shell passes argument from the user
  * @source: is used to put the difference between arguments from
- * 	the main() and interactive() methods.
- * 	It manupulates the pointers to pointer arrays.
+ *	the main() and interactive() methods.
+ *	It manupulates the pointers to pointer arrays.
  */
 void createargv(int argc, char *argv[], char *str, char source[])
 {
@@ -137,7 +139,7 @@ void createargv(int argc, char *argv[], char *str, char source[])
 			{
 				word[ind] = '\0';
 				word_ptr = strdup(word);
-				*(argv +count) = word_ptr;
+				*(argv + count) = word_ptr;
 				ind = 0;
 				count++;
 			}

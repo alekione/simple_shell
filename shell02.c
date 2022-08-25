@@ -33,7 +33,7 @@ int withbin(char *str)
 
 /**
  * stripstr - used to strip newline char at the end
- * since it is used to strip a string from cmd line, it is also used 
+ * since it is used to strip a string from cmd line, it is also used
  * to exit the program.
  * @str: string to strip
  * Return: a stripped string
