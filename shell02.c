@@ -32,16 +32,21 @@ int withbin(char *str)
 }
 
 /**
- * used to strip newline char at the end
+ * stripstr - used to strip newline char at the end
+ * since it is used to strip a string from cmd line, it is also used 
+ * to exit the program.
  * @str: string to strip
  * Return: a stripped string
  */
 char *stripstr(char *str)
 {
 	int len = strlen(str);
+	char *ex = "exit";
 
 	if (len == 1)
 		return (NULL);
 	*(str + len - 1) = '\0';
+	if (strcmp(str, ex) == 0)
+		exit(EXIT_SUCCESS);
 	return (str);
 }

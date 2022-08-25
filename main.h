@@ -10,7 +10,7 @@
 #include <sys/wait.h>
 
 char *strjn(char *, char*);
-void interactive(void);
+void interactive(char *[]);
 int checkfile(char *);
 int withbin(char *);
 char *stripstr(char *);

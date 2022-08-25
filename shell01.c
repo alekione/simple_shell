@@ -33,18 +33,17 @@ char *strjn(char *str1, char *str2)
  * Return: 0 for success
  */
 int main(int argc, char *argv[],
-		char __attribute__((unused)) *env[])
+		char *env[])
 {
-	char *exenv[] = {NULL};
 
 	/* if there is only one argument passed,
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
 	if (argc == 1)
-		interactive();
+		interactive(env);
 	createargv(argc, argv, NULL, "main");
-	execve(argv[0], argv, exenv);
+	execve(argv[0], argv, env);
 	perror("execve");
 	return (0);
 }
@@ -55,10 +54,9 @@ int main(int argc, char *argv[],
  * it creates its own prompt and execute commands passed into it
  * It does not return anything
  */
-void interactive(void)
+void interactive(char *env[])
 {
-	char *ptr = NULL, prompt[] = " ($)";
-	char *exarg[20], *exenv[] = {NULL};
+	char *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	pid_t session;
 	size_t size = 0;
 	int wstatus;
@@ -85,7 +83,7 @@ void interactive(void)
 		}
 		if (session == 0)
 		{
-			execve(exarg[0], exarg, exenv);
+			execve(exarg[0], exarg, env);
 			perror("execve");
 			_exit(session);
 		}
