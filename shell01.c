@@ -1,30 +1,6 @@
 #include "main.h"
 
 /**
- * strjn - join two pointer strings from the main
- * Works like strcat function
- * @str1: first string
- * @str2: second string
- * Return: a joined string
- */
-char *strjn(char *str1, char *str2)
-{
-	char *str = (char *)malloc(20 * sizeof(char));
-	int len1 = strlen(str1);
-	int len2 = strlen(str2);
-	int i;
-
-	if (str2 == NULL)
-		return (NULL);
-	for (i = 0; i < len1; i++)
-		str[i] = str1[i];
-	for (i = 0; i < len2; i++)
-		str[i + len1] = str2[i];
-	str[len1 + len2] = '\0';
-	return (str);
-}
-
-/**
  * main - entry point of simple shell program
  * All function calls start in this function
  * @argc: argv counter
@@ -44,7 +20,7 @@ int main(int argc, char *argv[],
 	if (argc == 1)
 		interactive(env);
 	str = argv[1];
-	createargv(argc, argv, NULL, "main");
+	createargv(argc, argv, NULL, "main", ' ');
 	if (!(pathexist(argv[0])))
 	{
 		perror(str);
@@ -78,14 +54,13 @@ void interactive(char *env[])
 		 * the char is causing the program to give unexpected results,
 		 * so it has to be stripped before continuing with the program.
 		 */
-		createargv(0, exarg, stripstr(ptr), "interactive");
-		str = exarg[0];
-		if (!(withbin(exarg[0])) && exarg[0] != NULL &&
-				!(isexit(exarg)))
-			exarg[0] = strjn("/bin/", exarg[0]);
-		if (!(pathexist(exarg[0])))
+		createargv(0, exarg, stripstr(ptr), "interactive", ' ');
+		str = iscommand(exarg[0], env);
+		if (str != NULL && isexecutable(str))
+			exarg[0] = str;
+		if (str != NULL && !(isexecutable(str)))
 		{
-			perror(str);
+			perror("access");
 			continue;
 		}
 		session = fork();
@@ -94,12 +69,12 @@ void interactive(char *env[])
 			perror("fork");
 			exit(EXIT_FAILURE);
 		}
-		if (session == 0)
-		{
-			execve(exarg[0], exarg, env);
-			perror("execve");
-			_exit(session);
-		}
+		if (session == 0 && str = NULL)
+			process_other(exarg, env);
+		else if (session == 0 && ismore_than_onecommand(argv))
+			process_multiple(exarg, env);
+		else if (session == 0 && !(ismore_than_onecommand(argv)))
+			execute_command(exarg, env)
 		waitpid(session, &wstatus, 0);
 	}
 	free(ptr);
@@ -118,13 +93,13 @@ void interactive(char *env[])
  * @str: string holding the passed arguments, the main function passes NULL
  *	while interactive shell passes argument from the user
  * @source: is used to put the difference between arguments from
- *	the main() and interactive() methods.
+ *	the main() or other methods.
+ *@delim: delimeter to use for separating string
  *	It manupulates the pointers to pointer arrays.
  */
-void createargv(int argc, char *argv[], char *str, char source[])
+void createargv(int argc, char *argv[], char *str, char source[], char delim)
 {
-	char *word_ptr,  word[50], main[] = "main",
-		interactive[] = "interactive", chr;
+	char *word_ptr,  word[50], main[] = "main", chr;
 	int i = 0, count = 0, ind = 0, len;
 
 	if (strcmp(source, main) == 0)
@@ -135,7 +110,7 @@ void createargv(int argc, char *argv[], char *str, char source[])
 		if (!(withbin(argv[0])))
 			argv[0] = strjn("/bin/", argv[0]);
 	}
-	if (strcmp(source, interactive) == 0)
+	else
 	{
 		if (str == NULL)
 		{
@@ -146,7 +121,7 @@ void createargv(int argc, char *argv[], char *str, char source[])
 		while (i <= len)
 		{
 			chr = str[i];
-			if ((chr == ' ' || chr == '\0') && ind > 0)
+			if ((chr == delim || chr == '\0') && ind > 0)
 			{
 				word[ind] = '\0';
 				word_ptr = strdup(word);
@@ -154,7 +129,7 @@ void createargv(int argc, char *argv[], char *str, char source[])
 				ind = 0;
 				count++;
 			}
-			if (chr != ' ')
+			if (chr != delim)
 			{
 				word[ind] = chr;
 				ind++;
@@ -163,4 +138,52 @@ void createargv(int argc, char *argv[], char *str, char source[])
 		}
 		*(argv + count) = NULL;
 	}
+}
+
+/**
+ * iscommand - used to check whether the passed argument is a command
+ * 	It uses enviroment variable PATH to check
+ * @str: string command to check
+ * @env: array pointers holding enviroment var
+ * Return: complete path or NULL incase none
+ */
+char *iscommand(char *str, char *env[])
+{
+	char *sptr = NULL, *path, *patharr[20];
+	int i = 0, j, len, diff;
+	bool withpath = false;
+
+	path = getenv("PATH");
+	if (path == NULL)
+		return (NULL);
+	createargv(0, patharr, path, "other", ':');
+	while (patharr[i++] != NULL)
+	{
+		len = strlen(patharr[i]);
+		diff = len;
+		for (j = 0; j < len; j++)
+		{
+			if (str[j] != patharr[i][j] &&
+					pathexist(strjn(patharr[i], str)))
+			{
+				sptr = strjn(patharr[i], str);
+				withpath = true;
+				break;
+			}
+			if (str[j] == patharr[i][j])
+				diff--;
+		}
+		if (withpath || diff == 0;)
+		{
+			withpath = true
+			break;
+		}
+	}
+	return (sptr);
+}
+
+void execute_command(char *argv[], char *env[])
+{
+	execve(argv[0], argv, env);
+	perror("execve");
 }

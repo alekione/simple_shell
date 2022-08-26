@@ -18,7 +18,10 @@ void createargv(int, char *[], char *, char []);
 bool isexit(char *[]);
 int processenv(char *[]);
 int cd (char *[]);
-bool checkR(char *);
-bool checkW(char *);
-bool checkX(char *);
+bool isreadable(char *);
+bool iswritable(char *);
+bool isexecutable(char *);
+char *iscommand(char *, char *[]);
+void process_multiple(char *[], char *[]);
+void execute_command(char *[], char *[]);
 #endif

@@ -5,7 +5,7 @@
  * @path: path to check
  * Return: true or false
  */
-bool checkR(char *path)
+bool isreadable(char *path)
 {
 	if (access(path, F_OK | R_OK) == 0)
 		return (true);
@@ -17,7 +17,7 @@ bool checkR(char *path)
  * @path: path to check
  * Return: true or false
  */
-bool checkW(char *path)
+bool iswritable(char *path)
 {
 	if (access(path, F_OK | W_OK) == 0)
 		return (true);
@@ -29,7 +29,7 @@ bool checkW(char *path)
  * @path: path given
  * Return: true or false
  */
-bool checkX(char *path)
+bool isexecutable(char *path)
 {
 	if (access(path, F_OK | X_OK) == 0)
 		return (true);
