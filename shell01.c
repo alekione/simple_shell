@@ -11,7 +11,7 @@
 int main(int argc, char *argv[],
 		char *env[])
 {
-	char *str;
+	char *str, *chr;
 	/**
 	 *  if there is only one argument passed,
 	 * the program should enter into interactive mode
@@ -19,16 +19,23 @@ int main(int argc, char *argv[],
 	 */
 	if (argc == 1)
 		interactive(env);
-	str = argv[1];
+	chr = argv[1];
 	createargv(argc, argv, NULL, "main", ' ');
-	if (!(pathexist(argv[0])))
+	str = iscommand(argv[0]);
+	if (str != NULL && isexecutable(str))
+		argv[0] = str;
+	if (str != NULL && !(isexecutable(str)))
 	{
-		perror(str);
-		exit(EXIT_FAILURE);
+		perror(chr);
+		return (EXIT_FAILURE);
 	}
-	execve(argv[0], argv, env);
-	perror("execve");
-	return (0);
+	if (str == NULL)
+		process_other(argv, env);
+	else if (str != NULL && ismore_than_onecommand(argv))
+		process_multiple(argv, env);
+	else if (str != NULL && !(ismore_than_onecommand(argv)))
+		execute_command(argv, env);
+	return (EXIT_SUCCESS);
 }
 
 /**
@@ -40,7 +47,7 @@ int main(int argc, char *argv[],
  */
 void interactive(char *env[])
 {
-	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
+	char *str, *chr, *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	pid_t session;
 	size_t size = 0;
 	int wstatus;
@@ -55,12 +62,13 @@ void interactive(char *env[])
 		 * so it has to be stripped before continuing with the program.
 		 */
 		createargv(0, exarg, stripstr(ptr), "interactive", ' ');
+		chr = exarg[0];
 		str = iscommand(exarg[0], env);
 		if (str != NULL && isexecutable(str))
 			exarg[0] = str;
 		if (str != NULL && !(isexecutable(str)))
 		{
-			perror("access");
+			perror(chr);
 			continue;
 		}
 		session = fork();
@@ -107,8 +115,6 @@ void createargv(int argc, char *argv[], char *str, char source[], char delim)
 		for (i = 1; i < argc; i++)
 			*(argv + (i - 1)) = argv[i];
 		*(argv + (argc - 1)) = NULL;
-		if (!(withbin(argv[0])))
-			argv[0] = strjn("/bin/", argv[0]);
 	}
 	else
 	{
