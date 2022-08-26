@@ -45,7 +45,7 @@ int main(int argc, char *argv[],
 		interactive(env);
 	str = argv[1];
 	createargv(argc, argv, NULL, "main");
-	if (checkfile(argv[0]) == -1)
+	if (!(pathexist(argv[0])))
 	{
 		perror(str);
 		exit(EXIT_FAILURE);
@@ -77,14 +77,13 @@ void interactive(char *env[])
 		 * i found that getline method, is adding '\n'  char at the end
 		 * the char is causing the program to give unexpected results,
 		 * so it has to be stripped before continuing with the program.
-		 * stripstr() is used to do this, and also to exit interactive
-		 * mode, if stripped string is "exit"
 		 */
 		createargv(0, exarg, stripstr(ptr), "interactive");
 		str = exarg[0];
-		if (withbin(exarg[0]) == -1 && exarg[0] != NULL)
+		if (!(withbin(exarg[0])) && exarg[0] != NULL &&
+				!(isexit(exarg)))
 			exarg[0] = strjn("/bin/", exarg[0]);
-		if (checkfile(exarg[0]) == -1)
+		if (!(pathexist(exarg[0])))
 		{
 			perror(str);
 			continue;
@@ -130,11 +129,11 @@ void createargv(int argc, char *argv[], char *str, char source[])
 
 	if (strcmp(source, main) == 0)
 	{
-		if (withbin(argv[1]) == -1)
-			argv[1] = strjn("/bin/", argv[1]);
 		for (i = 1; i < argc; i++)
 			*(argv + (i - 1)) = argv[i];
 		*(argv + (argc - 1)) = NULL;
+		if (!(withbin(argv[0])))
+			argv[0] = strjn("/bin/", argv[0]);
 	}
 	if (strcmp(source, interactive) == 0)
 	{

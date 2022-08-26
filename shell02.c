@@ -1,16 +1,18 @@
 #include "main.h"
 
 /**
- * checkfile - looks whether a file exists on the given path
+ * pathexist - looks whether a file exists on the given path
  * @filepath: given path to file
  * If it exists,
  * Return: 0 or -1 if it doesn't
  */
-int checkfile(char *filepath)
+bool pathexist(char *filepath)
 {
 	struct stat sb;
 
-	return (lstat(filepath, &sb));
+	if (lstat(filepath, &sb) == -1)
+		return (false);
+	return (true);
 }
 
 /**
@@ -18,7 +20,7 @@ int checkfile(char *filepath)
  * @str: string from the user
  * Return: 0 if true, -1 if false
  */
-int withbin(char *str)
+bool withbin(char *str)
 {
 	char *ptr = "/bin/";
 	int i;
@@ -26,9 +28,9 @@ int withbin(char *str)
 	for (i = 0; i < 5; i++)
 	{
 		if (str[i] != ptr[i])
-			return (-1);
+			return (false);
 	}
-	return (0);
+	return (true);
 }
 
 /**
@@ -41,7 +43,7 @@ int withbin(char *str)
 char *stripstr(char *str)
 {
 	int i = 2, len = strlen(str);
-	char chr, *ex = "exit";
+	char chr;
 
 	if (len == 1)
 		return (NULL);
@@ -54,7 +56,5 @@ char *stripstr(char *str)
 		*(str + len - i) = '\0';
 		i++;
 	}
-	if (strcmp(str, ex) == 0)
-		exit(EXIT_SUCCESS);
 	return (str);
 }

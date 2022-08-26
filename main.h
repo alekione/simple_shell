@@ -11,8 +11,11 @@
 
 char *strjn(char *, char*);
 void interactive(char *[]);
-int checkfile(char *);
-int withbin(char *);
+bool pathexist(char *);
+bool withbin(char *);
 char *stripstr(char *);
 void createargv(int, char *[], char *, char []);
+bool isexit(char *[]);
+int processenv(char *[]);
+int cd (char *[]);
 #endif
