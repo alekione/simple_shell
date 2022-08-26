@@ -18,4 +18,7 @@ void createargv(int, char *[], char *, char []);
 bool isexit(char *[]);
 int processenv(char *[]);
 int cd (char *[]);
+bool checkR(char *);
+bool checkW(char *);
+bool checkX(char *);
 #endif
