@@ -78,10 +78,13 @@ bool ismore_than_onecommand(char *argv[])
 
 	for (i = 0; i < 4; i++)
 	{
-		while (argv[j++] != NULL)
+		while (argv[j] != NULL)
 		{
 			if (strcmp(argv[j], str[i]) == 0)
+			{
 				return (true);
+			}
+			j++;
 		}
 	}
 	return (false);

@@ -22,8 +22,8 @@ int process_other(char *argv[], char *env[])
 	else if (strcmp(argv[0], exitc) == 0)
 	{
 		if (argv[1] != NULL)
-			exit(atoi(argv[1]));
-		exit(EXIT_SUCCESS);
+			_exit(atoi(argv[1]));
+		_exit(EXIT_SUCCESS);
 	}
 	else if (iscommand(argv[0], getenv("PATH")) == NULL)
 	{
@@ -44,7 +44,7 @@ void process_multiple(char *argv[], char *env[])
 	int i = 0, j, k, start = 0, ind, res = 0, wstatus;
 	pid_t cpid;
 
-	while (i++)
+	while (true)
 	{
 		for (j = 0; j < 3; j++)
 		{
@@ -75,5 +75,6 @@ void process_multiple(char *argv[], char *env[])
 			if (argv[i] == NULL)
 				break;
 		}
+		i++;
 	}
 }

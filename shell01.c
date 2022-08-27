@@ -77,12 +77,15 @@ void interactive(char *env[])
 			perror("fork");
 			exit(EXIT_FAILURE);
 		}
-		if (session == 0 && str == NULL)
-			process_other(exarg, env);
-		else if (session == 0 && ismore_than_onecommand(exarg))
-			process_multiple(exarg, env);
-		else if (session == 0 && !(ismore_than_onecommand(exarg)))
-			execute_command(exarg, env);
+		if (session == 0)
+		{
+			if (str == NULL)
+				process_other(exarg, env);
+			else if (ismore_than_onecommand(exarg))
+				process_multiple(exarg, env);
+			else if(!(ismore_than_onecommand(exarg)))
+				execute_command(exarg, env);
+		}
 		waitpid(session, &wstatus, 0);
 	}
 	free(ptr);
@@ -169,7 +172,7 @@ char *iscommand(char *str, char *path)
 		for (j = 0; j < len; j++)
 		{
 			if (str[j] != patharr[i][j] &&
-					pathexist(strjn(strjn(patharr[i], "/"), str)))
+				isexecutable(strjn(strjn(patharr[i], "/"), str)))
 			{
 				sptr = strjn(strjn(patharr[i], "/"), str);
 				withpath = true;
@@ -179,8 +182,11 @@ char *iscommand(char *str, char *path)
 				diff--;
 		}
 		if (diff == 0)
+		{
 			sptr = str;
-		if (withpath || diff == 0)
+			withpath = true;
+		}
+		if (withpath)
 			break;
 		i++;
 	}
@@ -197,8 +203,8 @@ int execute_command(char *argv[], char *env[])
 {
 	char *str;
 
-	printf("<<<<in execute command\n");
 	str = iscommand(argv[0], getenv("PATH"));
+	printf("string: %s\n", str);
 	if (str == NULL)
 		return (process_other(argv, env));
 	argv[0] = str;
