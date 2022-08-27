@@ -16,24 +16,6 @@ bool pathexist(char *filepath)
 }
 
 /**
- * withbin - checks whether the passed text starts with /bin/
- * @str: string from the user
- * Return: 0 if true, -1 if false
- */
-bool withbin(char *str)
-{
-	char *ptr = "/bin/";
-	int i;
-
-	for (i = 0; i < 5; i++)
-	{
-		if (str[i] != ptr[i])
-			return (false);
-	}
-	return (true);
-}
-
-/**
  * stripstr - used to strip newline && space char(s) at the end
  * since it is used to strip a string from cmd line, it is also used
  * to exit the program.
@@ -91,7 +73,7 @@ char *strjn(char *str1, char *str2)
  */
 bool ismore_than_onecommand(char *argv[])
 {
-	char *str[] = {"||", "&&", ';'};
+	char *str[] = {"||", "&&", ";"};
 	int i, j = 0;
 
 	for (i = 0; i < 4; i++)
@@ -99,7 +81,7 @@ bool ismore_than_onecommand(char *argv[])
 		while (argv[j++] != NULL)
 		{
 			if (strcmp(argv[j], str[i]) == 0)
-				return (true)
+				return (true);
 		}
 	}
 	return (false);

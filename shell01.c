@@ -21,7 +21,7 @@ int main(int argc, char *argv[],
 		interactive(env);
 	chr = argv[1];
 	createargv(argc, argv, NULL, "main", ' ');
-	str = iscommand(argv[0]);
+	str = iscommand(argv[0], getenv("PATH"));
 	if (str != NULL && isexecutable(str))
 		argv[0] = str;
 	if (str != NULL && !(isexecutable(str)))
@@ -63,7 +63,7 @@ void interactive(char *env[])
 		 */
 		createargv(0, exarg, stripstr(ptr), "interactive", ' ');
 		chr = exarg[0];
-		str = iscommand(exarg[0], env);
+		str = iscommand(exarg[0], getenv("PATH"));
 		if (str != NULL && isexecutable(str))
 			exarg[0] = str;
 		if (str != NULL && !(isexecutable(str)))
@@ -77,12 +77,12 @@ void interactive(char *env[])
 			perror("fork");
 			exit(EXIT_FAILURE);
 		}
-		if (session == 0 && str = NULL)
+		if (session == 0 && str == NULL)
 			process_other(exarg, env);
-		else if (session == 0 && ismore_than_onecommand(argv))
+		else if (session == 0 && ismore_than_onecommand(exarg))
 			process_multiple(exarg, env);
-		else if (session == 0 && !(ismore_than_onecommand(argv)))
-			execute_command(exarg, env)
+		else if (session == 0 && !(ismore_than_onecommand(exarg)))
+			execute_command(exarg, env);
 		waitpid(session, &wstatus, 0);
 	}
 	free(ptr);
@@ -153,43 +153,56 @@ void createargv(int argc, char *argv[], char *str, char source[], char delim)
  * @env: array pointers holding enviroment var
  * Return: complete path or NULL incase none
  */
-char *iscommand(char *str, char *env[])
+char *iscommand(char *str, char *path)
 {
-	char *sptr = NULL, *path, *patharr[20];
+	char *sptr = NULL, *patharr[20];
 	int i = 0, j, len, diff;
 	bool withpath = false;
 
-	path = getenv("PATH");
-	if (path == NULL)
+	if (path == NULL || str == NULL)
 		return (NULL);
 	createargv(0, patharr, path, "other", ':');
-	while (patharr[i++] != NULL)
+	while (patharr[i] != NULL)
 	{
 		len = strlen(patharr[i]);
 		diff = len;
 		for (j = 0; j < len; j++)
 		{
 			if (str[j] != patharr[i][j] &&
-					pathexist(strjn(patharr[i], str)))
+					pathexist(strjn(strjn(patharr[i], "/"), str)))
 			{
-				sptr = strjn(patharr[i], str);
+				sptr = strjn(strjn(patharr[i], "/"), str);
 				withpath = true;
 				break;
 			}
 			if (str[j] == patharr[i][j])
 				diff--;
 		}
-		if (withpath || diff == 0;)
-		{
-			withpath = true
+		if (diff == 0)
+			sptr = str;
+		if (withpath || diff == 0)
 			break;
-		}
+		i++;
 	}
 	return (sptr);
 }
 
-void execute_command(char *argv[], char *env[])
+/**
+ * execute_command - executes a given command
+ * @argv: array of command pointers
+ * @env: enviroment variables
+ * Return: -1 in failure, nothing or zero 0n success
+ */
+int execute_command(char *argv[], char *env[])
 {
+	char *str;
+
+	printf("<<<<in execute command\n");
+	str = iscommand(argv[0], getenv("PATH"));
+	if (str == NULL)
+		return (process_other(argv, env));
+	argv[0] = str;
 	execve(argv[0], argv, env);
 	perror("execve");
+	return (-1);
 }

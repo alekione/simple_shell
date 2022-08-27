@@ -12,16 +12,16 @@
 char *strjn(char *, char*);
 void interactive(char *[]);
 bool pathexist(char *);
-bool withbin(char *);
 char *stripstr(char *);
-void createargv(int, char *[], char *, char []);
-bool isexit(char *[]);
+void createargv(int, char *[], char *, char [], char);
 int processenv(char *[]);
 int cd (char *[]);
 bool isreadable(char *);
 bool iswritable(char *);
 bool isexecutable(char *);
-char *iscommand(char *, char *[]);
+char *iscommand(char *, char *);
 void process_multiple(char *[], char *[]);
-void execute_command(char *[], char *[]);
+int process_other(char *[], char *[]);
+bool ismore_than_onecommand(char *[]);
+int execute_command(char *[], char *[]);
 #endif
