@@ -7,18 +7,18 @@
 void isexit(char *argv[])
 {
 	char *ext = "exit";
-	int i = 0;
+	int i = 0, ext_val = 0;
 
 	while (argv[i] != NULL)
 	{
-		if (strcmp(argv[i], ext) == 0)
+		if (strcmp(argv[i], ext) == 0 && argv[i + 1] != NULL)
 		{
-			if (argv[i++] != NULL)
-				exit(atoi(argv[i]++));
-			exit(0);
+			ext_val = atoi(argv[i + 1]);
+			break;
 		}
 		i++;
 	}
+	exit(ext_val);
 }
 
 /**
