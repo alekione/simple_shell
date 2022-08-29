@@ -74,18 +74,62 @@ char *strjn(char *str1, char *str2)
 bool ismore_than_onecommand(char *argv[])
 {
 	char *str[] = {"||", "&&", ";"};
-	int i, j = 0;
+	int m = 0, j;
 
-	for (i = 0; i < 4; i++)
+	while (m < 3)
 	{
+		j = 0;
 		while (argv[j] != NULL)
 		{
-			if (strcmp(argv[j], str[i]) == 0)
-			{
+			if (strcmp(argv[j], str[m]) == 0)
 				return (true);
-			}
 			j++;
 		}
+		m++;
 	}
 	return (false);
+}
+
+/**
+ * iscommand - used to check whether the passed argument is a command
+ * 	It uses enviroment variable PATH to check
+ * @str: string command to check
+ * @env: array pointers holding enviroment var
+ * Return: complete path or NULL incase none
+ */
+char *iscommand(char *str, char *path)
+{
+	char *sptr = NULL, *patharr[20];
+	int i = 0, j, len, diff;
+	bool withpath = false;
+
+	if (path == NULL || str == NULL)
+		return (NULL);
+	createargv(0, patharr, path, "other", ':');
+	while (patharr[i] != NULL)
+	{
+		len = strlen(patharr[i]);
+		diff = len;
+		for (j = 0; j < len; j++)
+		{
+			if (str[j] != patharr[i][j] &&
+				isexecutable(strjn(strjn(patharr[i], "/"), str)))
+			{
+				sptr = strjn(strjn(patharr[i], "/"), str);
+				withpath = true;
+				break;
+			}
+			if (str[j] == patharr[i][j])
+				diff--;
+		}
+		if (diff == 0)
+		{
+			sptr = str;
+			withpath = true;
+		}
+		if (withpath)
+			break;
+		i++;
+	}
+	return (sptr);
 }

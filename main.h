@@ -8,7 +8,10 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <sys/wait.h>
+#include <signal.h>
 
+void sig_handler_child(int);
+void sig_handler_parent(int);
 char *strjn(char *, char*);
 void interactive(char *[]);
 bool pathexist(char *);

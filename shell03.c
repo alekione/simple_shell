@@ -1,6 +1,64 @@
 #include "main.h"
 
 /**
+ * createargv - is used to create character pointer array, for execve() method
+ *	that is used to run commands.
+ *	Since in main, the number of arguments passed is already given, so
+ *	we pass it as argc in this function.
+ *	On interactive shell the number of passed args is not determined unless
+ *	it's calculated manually here.
+ * @argc: argv counter as given from the main function
+ * @argv: arguments passed to the function, from the main and a NULL
+ *	pointer from interactive shell
+ * @str: string holding the passed arguments, the main function passes NULL
+ *	while interactive shell passes argument from the user
+ * @source: is used to put the difference between arguments from
+ *	the main() or other methods.
+ *@delim: delimeter to use for separating string
+ *	It manupulates the pointers to pointer arrays.
+ */
+void createargv(int argc, char *argv[], char *str, char source[], char delim)
+{
+	char *word_ptr,  word[50], main[] = "main", chr;
+	int i = 0, count = 0, ind = 0, len;
+
+	if (strcmp(source, main) == 0)
+	{
+		for (i = 1; i < argc; i++)
+			*(argv + (i - 1)) = argv[i];
+		*(argv + (argc - 1)) = NULL;
+	}
+	else
+	{
+		if (str == NULL)
+		{
+			*(argv + 0) = NULL;
+			return;
+		}
+		len = strlen(str);
+		while (i <= len)
+		{
+			chr = str[i];
+			if ((chr == delim || chr == '\0') && ind > 0)
+			{
+				word[ind] = '\0';
+				word_ptr = strdup(word);
+				*(argv + count) = word_ptr;
+				ind = 0;
+				count++;
+			}
+			if (chr != delim)
+			{
+				word[ind] = chr;
+				ind++;
+			}
+			i++;
+		}
+		*(argv + count) = NULL;
+	}
+}
+
+/**
  * process_other - executes other commands - custom commands
  * @argv: array of commands 
  * @env: enviroment variables
@@ -20,16 +78,7 @@ int process_other(char *argv[], char *env[])
 	else if (strcmp(argv[0], cdir) == 0)
 		return (cd(argv));
 	else if (strcmp(argv[0], exitc) == 0)
-	{
-		if (argv[1] != NULL)
-			_exit(atoi(argv[1]));
-		_exit(EXIT_SUCCESS);
-	}
-	else if (iscommand(argv[0], getenv("PATH")) == NULL)
-	{
-		perror(argv[0]);
-		return (EXIT_FAILURE);
-	}
+		exit(60);
 	return (execute_command(argv, env));
 }
 
@@ -48,7 +97,7 @@ void process_multiple(char *argv[], char *env[])
 	{
 		for (j = 0; j < 3; j++)
 		{
-			if (argv[i] == iden[j] || argv[i] == NULL)
+			if (strcmp(argv[i], iden[j]) == 0 || argv[i] == NULL)
 			{
 				ind = 0;
 				for (k = start; k < i; k++)
