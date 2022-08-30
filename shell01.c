@@ -8,7 +8,7 @@ void isexit(char *argv[])
 {
 	char *ext = "exit";
 	int i = 0, ext_val = 0;
-
+	
 	while (argv[i] != NULL)
 	{
 		if (strcmp(argv[i], ext) == 0 && argv[i + 1] != NULL)
@@ -18,6 +18,8 @@ void isexit(char *argv[])
 		}
 		i++;
 	}
+	unsetenv("ERR_MSG");
+	free(argv[0]);
 	exit(ext_val);
 }
 
@@ -32,33 +34,45 @@ void isexit(char *argv[])
 int main(int argc, char *argv[],
 		char *env[])
 {
-	char *str, *chr;
+	char *str;
+	pid_t session;
+	int wstatus;
 	/**
 	 *  if there is only one argument passed,
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
+	setenv("ERR_MSG", argv[0], 1);
 	if (argc == 1)
 	{
 		interactive(env);
 		return (0);
 	}
-	chr = argv[1];
-	createargv(argc, argv, NULL, "main", ' ');
-	str = iscommand(argv[0], getenv("PATH"));
-	if (str != NULL && isexecutable(str))
-		argv[0] = str;
-	if (str != NULL && !(isexecutable(str)))
+	if ((session = fork()) == -1)
 	{
-		perror(chr);
-		return (EXIT_FAILURE);
+		perror(getenv("ERR_MSG"));
+		exit(EXIT_FAILURE);
 	}
-	if (str == NULL)
-		process_other(argv, env);
-	else if (str != NULL && ismore_than_onecommand(argv))
-		process_multiple(argv, env);
-	else if (str != NULL && !(ismore_than_onecommand(argv)))
-		execute_command(argv, env);
+	if (session == 0)
+	{
+		createargv(argc, argv, NULL, "main", ' ');
+		str = iscommand(argv[0], getenv("PATH"));
+		if (str != NULL && isexecutable(str))
+			argv[0] = str;
+		if (str != NULL && !(isexecutable(str)))
+		{
+			perror(getenv("ERR_MSG"));
+			return (EXIT_FAILURE);
+		}
+		if (str == NULL)
+			process_other(argv, env);
+		else if (str != NULL && ismore_than_onecommand(argv))
+			process_multiple(argv, env);
+		else if (str != NULL && !(ismore_than_onecommand(argv)))
+			execute_command(argv, env);
+	}
+	free(str);
+	waitpid(session, &wstatus, 0);
 	return (EXIT_SUCCESS);
 }
 
@@ -89,7 +103,7 @@ void interactive(char *env[])
 		str = iscommand(exarg[0], getenv("PATH"));
 		if (str != NULL && !(isexecutable(str)))
 		{
-			perror(exarg[0]);
+			perror(getenv("ERR_MSG"));
 			continue;
 		}
 		if (str != NULL && isexecutable(str))
@@ -97,7 +111,7 @@ void interactive(char *env[])
 		session = fork();
 		if (session == -1)
 		{
-			perror("fork");
+			perror(getenv("ERR_MSG"));
 			exit(EXIT_FAILURE);
 		}
 		if (session == 0)
@@ -112,8 +126,10 @@ void interactive(char *env[])
 		waitpid(session, &wstatus, 0);
 		if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 60)
 			isexit(exarg);
+		free(ptr);
+		free(str);
+		ptr = NULL;
 	}
-	free(ptr);
 }
 
 /**
@@ -124,13 +140,8 @@ void interactive(char *env[])
  */
 int execute_command(char *argv[], char *env[])
 {
-	char *str;
-
-	str = iscommand(argv[0], getenv("PATH"));
-	if (str == NULL)
-		return (process_other(argv, env));
-	argv[0] = str;
 	execve(argv[0], argv, env);
-	perror("execve");
+	free(argv[0]);
+	perror(getenv("ERR_MSG"));
 	return (-1);
 }

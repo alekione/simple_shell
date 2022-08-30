@@ -13,12 +13,12 @@ int cd(char *argv[])
 	
 	if (cwd == NULL)
 	{
-		perror("malloc");
+		perror(argv[0]);
 		return (-1);
 	}
 	if (!(pathexist(dir)))
 	{
-		perror("lstat");
+		perror(argv[0]);
 		free(cwd);
 		return (-1);
 	}
@@ -37,7 +37,7 @@ int cd(char *argv[])
 	cdir = chdir(dir);
 	if (cdir == -1)
 	{
-		perror("cd");
+		perror(argv[0]);
 		argv2[2] = cwd;
 		processenv(argv2);
 		free(cwd);
