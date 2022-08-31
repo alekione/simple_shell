@@ -99,9 +99,8 @@ bool ismore_than_onecommand(char *argv[])
  */
 char *iscommand(char *str, char *path)
 {
-	char *sptr = NULL, *patharr[20];
+	char *chr, *patharr[20];
 	int i = 0, j, len, diff;
-	bool withpath = false;
 
 	if (path == NULL || str == NULL)
 		return (NULL);
@@ -112,24 +111,22 @@ char *iscommand(char *str, char *path)
 		diff = len;
 		for (j = 0; j < len; j++)
 		{
-			if (str[j] != patharr[i][j] &&
-				isexecutable(strjn(strjn(patharr[i], "/"), str)))
-			{
-				sptr = strjn(strjn(patharr[i], "/"), str);
-				withpath = true;
-				break;
-			}
 			if (str[j] == patharr[i][j])
+			{
 				diff--;
+				continue;
+			}
+			chr = strjn(strjn(patharr[i], "/"), str);
+			if (isexecutable(chr))
+				return (chr);
+			free(chr);
+			break;
 		}
 		if (diff == 0)
 		{
-			sptr = str;
-			withpath = true;
+			return (str);
 		}
-		if (withpath)
-			break;
 		i++;
 	}
-	return (sptr);
+	return (NULL);
 }

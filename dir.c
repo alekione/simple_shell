@@ -8,7 +8,7 @@
 int cd(char *argv[])
 {
 	char *cwd = (char *)malloc(100 * sizeof(char));
-	char *argv2[3], *ptr = "setenv", *dir = argv[1];
+	char *argv2[3], *ptr = "setenv", *dir = argv[1], *hme = "-";
 	int env, cdir;
 	
 	if (cwd == NULL)
@@ -16,6 +16,8 @@ int cd(char *argv[])
 		perror(argv[0]);
 		return (-1);
 	}
+	if (strcmp(dir, hme) == 0)
+		dir = getenv("HOME");
 	if (!(pathexist(dir)))
 	{
 		perror(argv[0]);
@@ -23,8 +25,6 @@ int cd(char *argv[])
 		return (-1);
 	}
 	getcwd(cwd, 100);
-	if (*dir == '-')
-		dir = getenv("HOME");
 	argv2[0] = ptr;
 	argv2[1] = "PWD";
 	argv2[2] = dir;
