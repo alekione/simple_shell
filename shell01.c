@@ -88,7 +88,7 @@ void interactive(char *env[])
 	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	pid_t session;
 	size_t size = 0;
-	int wstatus;
+	int wstatus, res = 0;
 
 	while (true)
 	{
@@ -117,11 +117,12 @@ void interactive(char *env[])
 		if (session == 0)
 		{
 			if (str == NULL)
-				process_other(exarg, env);
+				res = process_other(exarg, env);
 			else if (ismore_than_onecommand(exarg))
 				process_multiple(exarg, env);
 			else if(!(ismore_than_onecommand(exarg)))
-				execute_command(exarg, env);
+				res = execute_command(exarg, env);
+			exit(res);
 		}
 		waitpid(session, &wstatus, 0);
 		if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 60)

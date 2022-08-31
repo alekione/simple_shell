@@ -79,7 +79,11 @@ int process_other(char *argv[], char *env[])
 		return (cd(argv));
 	else if (strcmp(argv[0], exitc) == 0)
 		exit(60);
-	return (execute_command(argv, env));
+	else if (isexecutable(argv[0]))
+		execute_command(argv, env);
+	else
+		perror(getenv("ERR_MSG"));
+	return (-1);
 }
 
 /**
@@ -89,7 +93,7 @@ int process_other(char *argv[], char *env[])
  */
 void process_multiple(char *argv[], char *env[])
 {
-	char *arg[10], *iden[] = {";", "||", "&&"};
+	char *str, *arg[10], *iden[] = {";", "||", "&&"};
 	int i = 0, j, k, start = 0, ind, res = 0, wstatus;
 	pid_t cpid;
 
@@ -101,29 +105,43 @@ void process_multiple(char *argv[], char *env[])
 			{
 				ind = 0;
 				for (k = start; k < i; k++)
-					arg[ind++] = argv[k];
+				{
+					arg[ind] = argv[k];
+					ind++;
+				}
 				arg[ind] = NULL;
-				cpid = fork();
-				if (cpid == -1)
+				if (((str = iscommand(arg[0], getenv("PATH"))) == NULL &&
+					!(isexecutable(arg[0]))) || (str != NULL &&
+					!(isexecutable(str))))
+				{
+					perror(getenv("ERR_MSG"));
+					exit(EXIT_FAILURE);
+				}
+				if (str != NULL && isexecutable(str))
+					arg[0] = str;
+				if ((cpid = fork()) == -1)
 				{
 					perror("fork");
 					 return;
 				}
 				if (cpid == 0)
 				{
-					res = execute_command(arg, env);
+					if (str == NULL)
+						res = process_other(arg, env);
+					else
+						res = execute_command(arg, env);
 					_exit(cpid);
 				}
 				waitpid(cpid, &wstatus, 0);
 				if (res == -1 && j == 2)
 					exit (EXIT_FAILURE);
-				if (res != -1 && j == 1)
+				if (res == 0 && j == 1)
 					exit(EXIT_SUCCESS);
 				start = i + 1;
 			}
-			if (argv[i] == NULL)
-				break;
 		}
+		if (argv[i] == NULL)
+			break;
 		i++;
 	}
 }
