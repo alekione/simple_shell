@@ -83,7 +83,7 @@ int process_other(char *argv[], char *env[])
 		execute_command(argv, env);
 	else
 		perror(getenv("ERR_MSG"));
-	return (-1);
+	return (EXIT_FAILURE);
 }
 
 /**
@@ -94,14 +94,13 @@ int process_other(char *argv[], char *env[])
 void process_multiple(char *argv[], char *env[])
 {
 	char *str, *arg[10], *iden[] = {";", "||", "&&"};
-	int i = 0, j, k, start = 0, ind, res = 0, wstatus;
-	pid_t cpid;
+	int i = 0, j, k, start = 0, ind, res;
 
 	while (true)
 	{
 		for (j = 0; j < 3; j++)
 		{
-			if (strcmp(argv[i], iden[j]) == 0 || argv[i] == NULL)
+			if (argv[i] == NULL || strcmp(argv[i], iden[j]) == 0)
 			{
 				ind = 0;
 				for (k = start; k < i; k++)
@@ -110,8 +109,7 @@ void process_multiple(char *argv[], char *env[])
 					ind++;
 				}
 				arg[ind] = NULL;
-				if (((str = iscommand(arg[0], getenv("PATH"))) == NULL &&
-					!(isexecutable(arg[0]))) || (str != NULL &&
+				if (((str = iscommand(arg[0], getenv("PATH"))) != NULL &&
 					!(isexecutable(str))))
 				{
 					perror(getenv("ERR_MSG"));
@@ -119,29 +117,49 @@ void process_multiple(char *argv[], char *env[])
 				}
 				if (str != NULL && isexecutable(str))
 					arg[0] = str;
-				if ((cpid = fork()) == -1)
-				{
-					perror("fork");
-					 return;
-				}
-				if (cpid == 0)
-				{
-					if (str == NULL)
-						res = process_other(arg, env);
-					else
-						res = execute_command(arg, env);
-					_exit(cpid);
-				}
-				waitpid(cpid, &wstatus, 0);
-				if (res == -1 && j == 2)
+				res = complete_process_multiple(arg, env, str);
+				if (res == EXIT_FAILURE && j == 2)
 					exit (EXIT_FAILURE);
-				if (res == 0 && j == 1)
+				if (res == EXIT_SUCCESS && j == 1)
 					exit(EXIT_SUCCESS);
+				if (res == 60)
+					exit(60);
 				start = i + 1;
+				break;
 			}
 		}
-		if (argv[i] == NULL)
+		if (argv[start] == NULL)
 			break;
 		i++;
 	}
+}
+
+/**
+ * complete_process_multiple - complete the process-multiple function
+ * @argv: command arguments
+ * @env: enviroment variables
+ * Return: -1 on error 0 on success
+ */
+int complete_process_multiple(char *argv[], char *env[], char *str)
+{
+	pid_t cpid;
+	int res, wstatus;
+
+	if ((cpid = fork()) == -1)
+	{
+		perror("fork");
+		return (EXIT_FAILURE);
+	}			
+	if (cpid == 0)
+	{
+		if (str == NULL)
+			res = process_other(argv, env);
+		else
+			res = execute_command(argv, env);
+		_exit(res);
+	}
+	waitpid(cpid, &wstatus, 0);
+	if (WIFEXITED(wstatus))
+		return (WEXITSTATUS(wstatus));
+	return (EXIT_SUCCESS);
 }

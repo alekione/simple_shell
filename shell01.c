@@ -144,5 +144,5 @@ int execute_command(char *argv[], char *env[])
 	execve(argv[0], argv, env);
 	free(argv[0]);
 	perror(getenv("ERR_MSG"));
-	return (-1);
+	return (EXIT_FAILURE);
 }
