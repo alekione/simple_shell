@@ -10,9 +10,9 @@ bool pathexist(char *filepath)
 {
 	struct stat sb;
 
-	if (lstat(filepath, &sb) == -1)
-		return (false);
-	return (true);
+	if (lstat(filepath, &sb) == 0)
+		return (true);
+	return (false);
 }
 
 /**

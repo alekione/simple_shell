@@ -1,29 +1,6 @@
 #include "main.h"
 
 /**
- * isexit - exits the program with passed exit value, if nonr,
- * 	exits with a zero.
- */
-void isexit(char *argv[])
-{
-	char *ext = "exit";
-	int i = 0, ext_val = 0;
-	
-	while (argv[i] != NULL)
-	{
-		if (strcmp(argv[i], ext) == 0 && argv[i + 1] != NULL)
-		{
-			ext_val = atoi(argv[i + 1]);
-			break;
-		}
-		i++;
-	}
-	unsetenv("ERR_MSG");
-	free(argv[0]);
-	exit(ext_val);
-}
-
-/**
  * main - entry point of simple shell program
  * All function calls start in this function
  * @argc: argv counter
@@ -31,12 +8,10 @@ void isexit(char *argv[])
  * @env: enviroment/global variables to the program
  * Return: 0 for success
  */
-int main(int argc, char *argv[],
-		char *env[])
+int main(int argc, char *argv[])
 {
 	char *str;
-	pid_t session;
-	int wstatus;
+	int ret;
 	/**
 	 *  if there is only one argument passed,
 	 * the program should enter into interactive mode
@@ -45,34 +20,30 @@ int main(int argc, char *argv[],
 	setenv("ERR_MSG", argv[0], 1);
 	if (argc == 1)
 	{
-		interactive(env);
+		interactive();
 		return (0);
 	}
-	if ((session = fork()) == -1)
+	createargv(argc, argv, NULL, "main", ' ');
+	if (isreadable(argv[0]))
+	{
+		ret = process_file(argv[0]);
+		return (ret);
+	}
+	str = iscommand(argv[0], getenv("PATH"));
+	if (str != NULL && isexecutable(str))
+		argv[0] = str;
+	if (str != NULL && !(isexecutable(str)))
 	{
 		perror(getenv("ERR_MSG"));
-		exit(EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
-	if (session == 0)
-	{
-		createargv(argc, argv, NULL, "main", ' ');
-		str = iscommand(argv[0], getenv("PATH"));
-		if (str != NULL && isexecutable(str))
-			argv[0] = str;
-		if (str != NULL && !(isexecutable(str)))
-		{
-			perror(getenv("ERR_MSG"));
-			return (EXIT_FAILURE);
-		}
-		if (str == NULL)
-			process_other(argv, env);
-		else if (str != NULL && ismore_than_onecommand(argv))
-			process_multiple(argv, env);
-		else if (str != NULL && !(ismore_than_onecommand(argv)))
-			execute_command(argv, env);
-	}
+	if (str == NULL)
+		process_other(argv);
+	else if (str != NULL && ismore_than_onecommand(argv))
+		process_multiple(argv);
+	else if (str != NULL && !(ismore_than_onecommand(argv)))
+		execute_command(argv);
 	free(str);
-	waitpid(session, &wstatus, 0);
 	return (EXIT_SUCCESS);
 }
 
@@ -83,15 +54,15 @@ int main(int argc, char *argv[],
  * @env: pointer arrays holding enviroment/global values
  * It does not return anything
  */
-void interactive(char *env[])
+void interactive(void)
 {
-	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
-	pid_t session;
+	char *str, *ptr, prompt[] = " ($)", *exarg[20];
 	size_t size = 0;
-	int wstatus, res = 0;
 
+	printf("env: %s\n", getenv("EXT_VAL"));
 	while (true)
 	{
+		ptr = NULL;
 		write(1, &prompt, 4);
 		getline(&ptr, &size, stdin);
 		/**
@@ -100,36 +71,29 @@ void interactive(char *env[])
 		 * so it has to be stripped before continuing with the program.
 		 */
 		createargv(0, exarg, stripstr(ptr), "interactive", ' ');
+		if (isreadable(exarg[0]) )
+		{
+			process_file(exarg[0]);
+			free(ptr);
+			continue;
+		}
 		str = iscommand(exarg[0], getenv("PATH"));
 		if (str != NULL && !(isexecutable(str)))
 		{
 			perror(getenv("ERR_MSG"));
+			free(ptr);
 			continue;
 		}
 		if (str != NULL && isexecutable(str))
 			exarg[0] = str;
-		session = fork();
-		if (session == -1)
-		{
-			perror(getenv("ERR_MSG"));
-			exit(EXIT_FAILURE);
-		}
-		if (session == 0)
-		{
-			if (str == NULL)
-				res = process_other(exarg, env);
-			else if (ismore_than_onecommand(exarg))
-				process_multiple(exarg, env);
-			else if(!(ismore_than_onecommand(exarg)))
-				res = execute_command(exarg, env);
-			exit(res);
-		}
-		waitpid(session, &wstatus, 0);
-		if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) == 60)
-			isexit(exarg);
+		if (str == NULL)
+			process_other(exarg);
+		else if (ismore_than_onecommand(exarg))
+			process_multiple(exarg);
+		else if(!(ismore_than_onecommand(exarg)))
+			execute_command(exarg);
 		free(ptr);
 		free(str);
-		ptr = NULL;
 	}
 }
 
@@ -139,10 +103,27 @@ void interactive(char *env[])
  * @env: enviroment variables
  * Return: -1 in failure, nothing or zero 0n success
  */
-int execute_command(char *argv[], char *env[])
+int execute_command(char *argv[])
 {
-	execve(argv[0], argv, env);
-	free(argv[0]);
-	perror(getenv("ERR_MSG"));
-	return (EXIT_FAILURE);
+	int wstatus;
+	pid_t cpid;
+	extern char **environ;
+
+	process_dollar_sign(argv);
+	setenv("EXT_VAL", "0", 1);
+	if ((cpid = fork()) == -1)
+	{
+		perror(getenv("ERR_MSG"));
+		return (EXIT_FAILURE);
+	}
+	if (cpid == 0)
+	{
+		execve(argv[0], argv, environ);
+		setenv("EXT_VAL", num_tostring(errno), 1);
+		perror(getenv("ERR_MSG"));
+		return (EXIT_FAILURE);
+	}
+	waitpid(cpid, &wstatus, 0);
+	setenv("EXT_VAL", num_tostring(errno), 1);
+	return (EXIT_SUCCESS);
 }

@@ -5,44 +5,38 @@
  * @argv: array pointer holding instructions
  * Return: -1 on error 0 on success
  */
-int cd(char *argv[])
+int cd(char *dir)
 {
 	char *cwd = (char *)malloc(100 * sizeof(char));
-	char *argv2[3], *ptr = "setenv", *dir = argv[1], *hme = "-";
-	int env, cdir;
+	char *hme = "-";
+	int cdir;
 	
+
 	if (cwd == NULL)
 	{
-		perror(argv[0]);
-		return (-1);
+		perror(getenv("ERR_MSG"));
+		return (EXIT_FAILURE);
 	}
 	if (strcmp(dir, hme) == 0)
 		dir = getenv("HOME");
 	if (!(pathexist(dir)))
 	{
-		perror(argv[0]);
+		perror(getenv("ERR_MSG"));
 		free(cwd);
-		return (-1);
+		return (EXIT_FAILURE);
 	}
 	getcwd(cwd, 100);
-	argv2[0] = ptr;
-	argv2[1] = "PWD";
-	argv2[2] = dir;
-	env = processenv(argv2);
-	if (env == -1)
-	{
-		free(cwd);
-		return (env);
-	}
+	setenv("PWD", dir, 1);
 	cdir = chdir(dir);
 	if (cdir == -1)
 	{
-		perror(argv[0]);
-		argv2[2] = cwd;
-		processenv(argv2);
+		setenv("EXT_VAL", num_tostring(errno), 1);
+		perror(getenv("ERR_MSG"));
+		setenv("PWD", cwd, 1);
 		free(cwd);
-		return (-1);
+		return (EXIT_FAILURE);
 	}
 	free(cwd);
-	return (0);
+	setenv("EXT_VAL", "0", 1);
+	return (EXIT_SUCCESS);
 }

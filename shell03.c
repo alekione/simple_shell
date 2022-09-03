@@ -63,37 +63,37 @@ void createargv(int argc, char *argv[], char *str, char source[], char delim)
 /**
  * process_other - executes other commands - custom commands
  * @argv: array of commands 
- * @env: enviroment variables
  * Return: -1 incase of failure 0 on success
  */
-int process_other(char *argv[], char *env[])
+int process_other(char *argv[])
 {
-	char *set = "setenv", *unset = "unsetenv", *exitc = "exit", *cdir = "cd";
+	char *set = "setenv", *unset = "unsetenv", *exitc = "exit";
+	char *cdir = "cd";
 
 	if (ismore_than_onecommand(argv))
 	{
-		process_multiple(argv, env);
+		process_multiple(argv);
 		return (EXIT_SUCCESS);
 	}
 	if (strcmp(argv[0], set) == 0 || strcmp(argv[0], unset) == 0)
 		return (processenv(argv));
 	else if (strcmp(argv[0], cdir) == 0)
-		return (cd(argv));
+		return (cd(argv[1]));
 	else if (strcmp(argv[0], exitc) == 0)
-		exit(60);
-	else if (isexecutable(argv[0]))
-		execute_command(argv, env);
+	{
+		if (argv[1] != NULL)
+			exit(atoi(argv[1]));
+		exit(EXIT_SUCCESS);
+	}
 	else
-		perror(getenv("ERR_MSG"));
-	return (EXIT_FAILURE);
+		return (execute_command(argv));
 }
 
 /**
  * process_multiple - executes multiple commands in order given
  * @argv: array of pinter commands
- * @env: enviroment variables
  */
-void process_multiple(char *argv[], char *env[])
+void process_multiple(char *argv[])
 {
 	char *str, *arg[10], *iden[] = {";", "||", "&&"};
 	int i = 0, j, k, start = 0, ind, res;
@@ -115,22 +115,20 @@ void process_multiple(char *argv[], char *env[])
 					!(isexecutable(str))))
 				{
 					perror(getenv("ERR_MSG"));
-					exit(EXIT_FAILURE);
+					return;
 				}
 				if (str != NULL && isexecutable(str))
 					arg[0] = str;
-				res = complete_process_multiple(arg, env, str);
+				res = complete_process_multiple(arg, str);
 				if (res == EXIT_FAILURE && j == 2)
-					exit (EXIT_FAILURE);
+					return;
 				if (res == EXIT_SUCCESS && j == 1)
-					exit(EXIT_SUCCESS);
-				if (res == 60)
-					exit(60);
+					return;
 				start = i + 1;
 				break;
 			}
 		}
-		if (argv[start] == NULL)
+		if (argv[i] == NULL)
 			break;
 		i++;
 	}
@@ -139,29 +137,13 @@ void process_multiple(char *argv[], char *env[])
 /**
  * complete_process_multiple - complete the process-multiple function
  * @argv: command arguments
- * @env: enviroment variables
+ * @str: string for comparison
  * Return: -1 on error 0 on success
  */
-int complete_process_multiple(char *argv[], char *env[], char *str)
+int complete_process_multiple(char *argv[], char *str)
 {
-	pid_t cpid;
-	int res, wstatus;
-
-	if ((cpid = fork()) == -1)
-	{
-		perror("fork");
-		return (EXIT_FAILURE);
-	}			
-	if (cpid == 0)
-	{
-		if (str == NULL)
-			res = process_other(argv, env);
-		else
-			res = execute_command(argv, env);
-		_exit(res);
-	}
-	waitpid(cpid, &wstatus, 0);
-	if (WIFEXITED(wstatus))
-		return (WEXITSTATUS(wstatus));
-	return (EXIT_SUCCESS);
+	if (str == NULL)
+		return (process_other(argv));
+	else
+		return (execute_command(argv));
 }
