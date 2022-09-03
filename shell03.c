@@ -93,7 +93,7 @@ int process_other(char *argv[])
  * process_multiple - executes multiple commands in order given
  * @argv: array of pinter commands
  */
-void process_multiple(char *argv[])
+int process_multiple(char *argv[])
 {
 	char *str, *arg[10], *iden[] = {";", "||", "&&"};
 	int i = 0, j, k, start = 0, ind, res;
@@ -115,15 +115,15 @@ void process_multiple(char *argv[])
 					!(isexecutable(str))))
 				{
 					perror(getenv("ERR_MSG"));
-					return;
+					return (EXIT_FAILURE);
 				}
 				if (str != NULL && isexecutable(str))
 					arg[0] = str;
 				res = complete_process_multiple(arg, str);
 				if (res == EXIT_FAILURE && j == 2)
-					return;
+					return (EXIT_FAILURE);
 				if (res == EXIT_SUCCESS && j == 1)
-					return;
+					return (EXIT_SUCCESS);
 				start = i + 1;
 				break;
 			}
@@ -132,6 +132,7 @@ void process_multiple(char *argv[])
 			break;
 		i++;
 	}
+	return (EXIT_SUCCESS);
 }
 
 /**

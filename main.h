@@ -29,7 +29,7 @@ bool isexecutable(char *);
 char *iscommand(char *, char *);
 int process_file(char *);
 int process_file2(char *[]);
-void process_multiple(char *[]);
+int process_multiple(char *[]);
 int complete_process_multiple(char *[], char *);
 int process_other(char *[]);
 bool ismore_than_onecommand(char *[]);

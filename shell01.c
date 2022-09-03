@@ -59,7 +59,6 @@ void interactive(void)
 	char *str, *ptr, prompt[] = " ($)", *exarg[20];
 	size_t size = 0;
 
-	printf("env: %s\n", getenv("EXT_VAL"));
 	while (true)
 	{
 		ptr = NULL;
