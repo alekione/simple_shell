@@ -120,9 +120,11 @@ int execute_command(char *argv[])
 		execve(argv[0], argv, environ);
 		setenv("EXT_VAL", num_tostring(errno), 1);
 		perror(getenv("ERR_MSG"));
-		return (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	waitpid(cpid, &wstatus, 0);
+	if (WIFEXITED(wstatus))
+		return (WEXITSTATUS(wstatus));
 	setenv("EXT_VAL", num_tostring(errno), 1);
 	return (EXIT_SUCCESS);
 }

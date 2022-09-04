@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+void free_argv(char *[]);
 void isexit(char *[]);
 void sig_handler_child(int);
 void sig_handler_parent(int);

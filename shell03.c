@@ -19,7 +19,7 @@
  */
 void createargv(int argc, char *argv[], char *str, char source[], char delim)
 {
-	char *word_ptr,  word[50], main[] = "main", chr;
+	char word[50], main[] = "main", chr;
 	int i = 0, count = 0, ind = 0, len;
 
 	if (strcmp(source, main) == 0)
@@ -42,8 +42,7 @@ void createargv(int argc, char *argv[], char *str, char source[], char delim)
 			if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 			{
 				word[ind] = '\0';
-				word_ptr = strdup(word);
-				*(argv + count) = word_ptr;
+				*(argv + count) = strdup(word);
 				ind = 0;
 				count++;
 			}
