@@ -57,7 +57,6 @@ void createargv(int argc, char *argv[], char *str, char source[], char delim)
 			i++;
 		}
 		*(argv + count) = NULL;
-		free((ptr = NULL));
 	}
 }
 
