@@ -56,20 +56,24 @@ int main(int argc, char *argv[])
  */
 void interactive(void)
 {
-	char *str, *ptr, prompt[] = " ($)", *exarg[20];
+	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	size_t size = 0;
+	int i;
 
 	while (true)
 	{
+		i = 0;
 		ptr = NULL;
 		write(1, &prompt, 4);
 		getline(&ptr, &size, stdin);
+		if (stripstr(ptr) == NULL)
+			continue;
 		/**
 		 * i found that getline method, is adding '\n'  char at the end
 		 * the char is causing the program to give unexpected results,
 		 * so it has to be stripped before continuing with the program.
 		 */
-		createargv(0, exarg, stripstr(ptr), "interactive", ' ');
+		createargv(0, exarg, ptr, "interactive", ' ');
 		if (isreadable(exarg[0]) )
 		{
 			process_file(exarg[0]);
@@ -91,8 +95,11 @@ void interactive(void)
 			process_multiple(exarg);
 		else if(!(ismore_than_onecommand(exarg)))
 			execute_command(exarg);
-		free(ptr);
-		free(str);
+		while (exarg[i] != NULL)
+		{
+			free(exarg[i]);
+			i++;
+		}
 	}
 }
 
