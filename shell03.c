@@ -17,47 +17,38 @@
  *@delim: delimeter to use for separating string
  *	It manupulates the pointers to pointer arrays.
  */
-void createargv(int argc, char *argv[], char *str, char source[], char delim)
+void createargv(char *(*argv)[], char *str, char delim)
 {
-	char *ptr, word[50], main[] = "main", chr;
+	char/*ptr = NULL,*/ word[50], chr;
 	int i = 0, count = 0, ind = 0, len;
 
-	if (strcmp(source, main) == 0)
+	if (str == NULL)
 	{
-		for (i = 1; i < argc; i++)
-			*(argv + (i - 1)) = argv[i];
-		*(argv + (argc - 1)) = NULL;
+		*(*argv + 0) = NULL;
+		return;
 	}
-	else
+	len = strlen(str);
+	while (i <= len)
 	{
-		if (str == NULL)
+		chr = str[i];
+		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 		{
-			*(argv + 0) = NULL;
-			return;
+			word[ind] = '\0';
+			/*ptr = strdup(word);*/
+			*(*argv + count) = strdup(word);
+			ind = 0;
+			count++;
 		}
-		len = strlen(str);
-		while (i <= len)
+		if (chr != delim)
 		{
-			chr = str[i];
-			if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
-			{
-				word[ind] = '\0';
-				ptr = strdup(word);
-				*(argv + count) = ptr;
-				ind = 0;
-				count++;
-			}
-			if (chr != delim)
-			{
-				word[ind] = chr;
-				ind++;
-			}
-			if (chr == '#')
-				break;
-			i++;
+			word[ind] = chr;
+			ind++;
 		}
-		*(argv + count) = NULL;
+		if (chr == '#')
+			break;
+		i++;
 	}
+	*(*argv + count) = NULL;
 }
 
 /**
@@ -95,7 +86,7 @@ int process_other(char *argv[])
  */
 int process_multiple(char *argv[])
 {
-	char *str, *arg[10], *iden[] = {";", "||", "&&"};
+	char *str, *ptr = NULL, *arg[10], *iden[] = {";", "||", "&&"};
 	int i = 0, j, k, start = 0, ind, res;
 
 	while (true)
@@ -111,8 +102,9 @@ int process_multiple(char *argv[])
 					ind++;
 				}
 				arg[ind] = NULL;
-				if (((str = iscommand(arg[0], getenv("PATH"))) != NULL &&
-					!(isexecutable(str))))
+				str = arg[0];
+				iscommand(&str, getenv("PATH"));
+				if (str != NULL && !(isexecutable(str)))
 				{
 					perror(getenv("ERR_MSG"));
 					return (EXIT_FAILURE);
@@ -125,6 +117,7 @@ int process_multiple(char *argv[])
 				if (res == EXIT_SUCCESS && j == 1)
 					return (EXIT_SUCCESS);
 				start = i + 1;
+				free(str);
 				break;
 			}
 		}
@@ -132,6 +125,7 @@ int process_multiple(char *argv[])
 			break;
 		i++;
 	}
+	_free2(&argv, &ptr);
 	return (EXIT_SUCCESS);
 }
 

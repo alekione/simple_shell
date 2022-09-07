@@ -12,22 +12,23 @@
 #include <fcntl.h>
 #include <errno.h>
 
-void free_argv(char *[]);
+void _free(char *(*)[], char **);
+void _free2(char ***, char **);
 void isexit(char *[]);
 void sig_handler_child(int);
 void sig_handler_parent(int);
-char *strjn(char *, char*);
+void strjn(char **, char*);
 void interactive(void);
 void interactive2( char *[], char *);
 bool pathexist(char *);
-char *stripstr(char *);
-void createargv(int, char *[], char *, char [], char);
+void stripstr(char **);
+void createargv(char *(*)[], char *, char);
 int processenv(char *[]);
 int cd (char *);
 bool isreadable(char *);
 bool iswritable(char *);
 bool isexecutable(char *);
-char *iscommand(char *, char *);
+void iscommand(char **, char *);
 int process_file(char *);
 int process_file2(char *[]);
 int process_multiple(char *[]);
@@ -36,8 +37,8 @@ int process_other(char *[]);
 bool ismore_than_onecommand(char *[]);
 int execute_command(char *[]);
 void process_dollar_sign(char *[]);
-char *string_dollar(char *);
+char *string_dollar(char **);
 char *num_tostring(unsigned long int);
-char *strchar(char);
+void _strcpy(char (*)[], char *);
 int string_dollar2(int, int, char *, char **);
 #endif

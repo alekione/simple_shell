@@ -22,13 +22,16 @@ bool pathexist(char *filepath)
  * @str: string to strip
  * Return: a stripped string
  */
-char *stripstr(char *str)
+void stripstr(char **ptr)
 {
+	char *str = strdup(*ptr), chr;
 	int i = 2, len = strlen(str);
-	char chr;
 
 	if (len == 1)
-		return (NULL);
+	{
+		*ptr = NULL;
+		return;
+	}
 	*(str + len - 1) = '\0';
 	while (true)
 	{
@@ -38,7 +41,8 @@ char *stripstr(char *str)
 		*(str + len - i) = '\0';
 		i++;
 	}
-	return (str);
+	free(*ptr);
+	*ptr = str;
 }
 
 /**
@@ -46,23 +50,24 @@ char *stripstr(char *str)
  * Works like strcat function
  * @str1: first string
  * @str2: second string
- * Return: a joined string
  */
-char *strjn(char *str1, char *str2)
+void strjn(char **str1, char *str2)
 {
-	int len1 = strlen(str1);
-	int len2 = strlen(str2);
-	char *str = (char *)malloc((len1 + len2 + 1) * sizeof(char));
+	char *str, *ptr = strdup(*str1);
+	int len1, len2 = strlen(str2);
 	int i;
 
-	if (str2 == NULL)
-		return (NULL);
+	if (str2 == NULL || len2 == 0)
+		return;
+	len1 = strlen(ptr);
+	str = (char *)malloc((len1 + len2 + 1) * sizeof(char));
 	for (i = 0; i < len1; i++)
-		str[i] = str1[i];
+		str[i] = ptr[i];
 	for (i = 0; i < len2; i++)
 		str[i + len1] = str2[i];
 	str[len1 + len2] = '\0';
-	return (str);
+	free(ptr);
+	*str1 = str;
 }
 
 /**
@@ -97,14 +102,17 @@ bool ismore_than_onecommand(char *argv[])
  * @env: array pointers holding enviroment var
  * Return: complete path or NULL incase none
  */
-char *iscommand(char *str, char *path)
+void iscommand(char **ptr, char *path)
 {
-	char *chr1, *chr2 = NULL, *patharr[20];
+	char *chr1 = NULL, *chr2, *patharr[20], *str = *ptr;
 	int i = 0, j, len, diff;
 
 	if (path == NULL || str == NULL)
-		return (NULL);
-	createargv(0, patharr, path, "other", ':');
+	{
+		*ptr = NULL;
+		return;
+	}
+	createargv(&patharr, path, ':');
 	while (patharr[i] != NULL)
 	{
 		len = strlen(patharr[i]);
@@ -116,29 +124,24 @@ char *iscommand(char *str, char *path)
 				diff--;
 				continue;
 			}
-			chr1 = strjn(patharr[i], "/");
-			chr2 = strjn(chr1, str);
+			chr1 = patharr[i];
+			strjn(&chr1, "/");
+			chr2 = chr1;
+			strjn(&chr1, str);
+			free(chr2);
+			if (isexecutable(chr1))
+				break;
 			free(chr1);
 			chr1 = NULL;
-			if (isexecutable(chr2))
-				break;
-			free(chr2);
-			chr2 = NULL;
 			break;
 		}
-		if (chr2 != NULL)
-			break;
 		if (diff == 0)
-		{
-			chr2 = str;
+			chr1 = str;
+		if (chr1 != NULL || diff == 0)
 			break;
-		}
 		i++;
 	}
-	while (patharr[i] != NULL)
-	{
-		free(patharr[i]);
-		i++;
-	}
-	return (chr2);
+	str = NULL;
+	_free(&patharr, &str);
+	*ptr = chr1;
 }

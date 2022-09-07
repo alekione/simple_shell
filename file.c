@@ -25,15 +25,18 @@ int process_file(char *file)
 		rd = getline(&ptr, &size, op);
 		if (rd == -1 || rd == 0)
 			break;
-		createargv(0, argv, stripstr(ptr), "other", ' ');
+		stripstr(&ptr);
+		createargv(&argv, ptr, ' ');
 		ret = process_file2(argv);
 		if (ret == EXIT_FAILURE)
 		{
+			_free(&argv, &ptr);
 			fclose(op);
 			return (EXIT_FAILURE);
 		}
 	}
 	fclose(op);
+	_free(&argv, &ptr);
 	return (EXIT_SUCCESS);
 }
 
@@ -46,13 +49,14 @@ int process_file(char *file)
 int process_file2(char *argv[])
 {
 	int ret;
-	char *str;
+	char *str = NULL;
 
 	if (ismore_than_onecommand(argv))
 		ret = process_multiple(argv);
 	else
 	{
-		str = iscommand(argv[0], getenv("PATH"));
+		str = argv[0];
+		iscommand(&str, getenv("PATH"));
 		if (str != NULL && !(isexecutable(str)))
 		{
 			perror(getenv("ERR_MSG"));
@@ -66,5 +70,6 @@ int process_file2(char *argv[])
 		if (str == NULL)
 			ret = process_other(argv);
 	}
+	free(str);
 	return (ret);
 }

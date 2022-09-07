@@ -15,7 +15,7 @@ void process_dollar_sign(char *argv[])
 		{
 			if (argv[j][i] == '$' && argv[j][i + 1] != '\0')
 			{
-				argv[j] = string_dollar(argv[j]);
+				 argv[j] = string_dollar(&argv[j]);
 				break;
 			}
 		}
@@ -28,10 +28,10 @@ void process_dollar_sign(char *argv[])
  * @str: string containing the dillar sign
  * Return: a processed string
  */
-char *string_dollar(char *str)
+char* string_dollar(char **ptr)
 {
-	char *ptr = "", *chr;
-	int i, j, len, counter = 0;
+	char *str = *ptr, *chr, sptr[1024];
+	int i, j, len, ind = 0, counter = 0;
 
 	len = strlen(str);
 	for (i = 0; i < len; i++)
@@ -41,22 +41,25 @@ char *string_dollar(char *str)
 			j = string_dollar2(i, len, str, &chr);
 			if (counter == 1)
 			{
-				ptr = strjn(ptr, chr);
+				sptr[ind] = '\0';
+				_strcpy(&sptr, chr);
+				ind += (int)strlen(chr);
 			}
 			i += j;
 		}
 		else
 		{
-			chr = strchar(str[i]);
-			ptr = strjn(ptr, chr);
+			sptr[ind] = str[i];
 			counter = 1;
+			ind++;
 		}
 		if (counter == 0 && i >= len -1)
 		{
 			return (chr);
 		}
 	}
-	return (ptr);
+	*ptr = strdup(sptr);
+	return (*ptr);
 }
 
 /**
@@ -126,17 +129,17 @@ char *num_tostring(long unsigned int num)
  * @c: char to convert
  * Return: string character
  */
-char *strchar(char chr)
+void _strcpy(char (*str1)[], char *str2)
 {
-	char *str = malloc(2 * sizeof(char));
+	int i = 0, j = 0;
 
-	if (str == NULL)
+	while (*(*str1 + i) != '\0')
+		i++;
+	while (str2[j] != '\0')
 	{
-		perror(getenv("ERR_MSG"));
-		exit(EXIT_FAILURE);
+		*(*str1 + i) = str2[j];
+		i++;
+		j++;
 	}
-	str[0] = chr;
-	str[1] = '\0';
-	return (str);
+	*(*str1 + i) = '\0';
 }
-

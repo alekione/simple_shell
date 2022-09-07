@@ -11,7 +11,7 @@
 int main(int argc, char *argv[])
 {
 	char *str;
-	int ret;
+	int ret, i;
 	/**
 	 *  if there is only one argument passed,
 	 * the program should enter into interactive mode
@@ -23,27 +23,30 @@ int main(int argc, char *argv[])
 		interactive();
 		return (0);
 	}
-	createargv(argc, argv, NULL, "main", ' ');
-	if (isreadable(argv[0]))
+	for (i = 1; argv[i] != NULL; i++)
+		*(argv + (i - 1)) = argv[i];
+	*(argv + (argc - 1)) = NULL;
+	str = argv[0];
+	iscommand(&str, getenv("PATH"));
+	if (str == NULL && isreadable(argv[0]))
 	{
 		ret = process_file(argv[0]);
 		return (ret);
 	}
-	str = iscommand(argv[0], getenv("PATH"));
-	if (str != NULL && isexecutable(str))
-		argv[0] = str;
 	if (str != NULL && !(isexecutable(str)))
 	{
 		perror(getenv("ERR_MSG"));
+		free(str);
 		return (EXIT_FAILURE);
 	}
+	if (str != NULL && isexecutable(str))
+		argv[0] = str;
 	if (str == NULL)
 		process_other(argv);
 	else if (str != NULL && ismore_than_onecommand(argv))
 		process_multiple(argv);
 	else if (str != NULL && !(ismore_than_onecommand(argv)))
 		execute_command(argv);
-	free(str);
 	return (EXIT_SUCCESS);
 }
 
@@ -58,48 +61,52 @@ void interactive(void)
 {
 	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	size_t size = 0;
-	int i;
 
 	while (true)
 	{
-		i = 0;
 		ptr = NULL;
 		write(1, &prompt, 4);
 		getline(&ptr, &size, stdin);
-		if (stripstr(ptr) == NULL)
+		stripstr(&ptr);
+		if (ptr == NULL)
+		{
+			free(ptr);
 			continue;
+		}
 		/**
 		 * i found that getline method, is adding '\n'  char at the end
 		 * the char is causing the program to give unexpected results,
 		 * so it has to be stripped before continuing with the program.
 		 */
-		createargv(0, exarg, ptr, "interactive", ' ');
-		if (isreadable(exarg[0]) )
+		createargv(&exarg, ptr, ' ');
+		free(ptr);
+		str = exarg[0];
+		iscommand(&str, getenv("PATH"));
+		if (str == NULL && isreadable(exarg[0]) )
 		{
 			process_file(exarg[0]);
-			free(ptr);
+			_free(&exarg, &str);
 			continue;
 		}
-		str = iscommand(exarg[0], getenv("PATH"));
 		if (str != NULL && !(isexecutable(str)))
 		{
 			perror(getenv("ERR_MSG"));
-			free(ptr);
+			_free(&exarg, &str);
 			continue;
 		}
 		if (str != NULL && isexecutable(str))
+		{
+			free(exarg[0]);
 			exarg[0] = str;
+		}
 		if (str == NULL)
 			process_other(exarg);
 		else if (ismore_than_onecommand(exarg))
 			process_multiple(exarg);
 		else if(!(ismore_than_onecommand(exarg)))
 			execute_command(exarg);
-		while (exarg[i] != NULL)
-		{
-			free(exarg[i]);
-			i++;
-		}
+		if (str != NULL)
+			str = NULL;
 	}
 }
 
@@ -134,4 +141,33 @@ int execute_command(char *argv[])
 		return (WEXITSTATUS(wstatus));
 	setenv("EXT_VAL", num_tostring(errno), 1);
 	return (EXIT_SUCCESS);
+}
+
+/**
+ * _free: frees a memory
+ * @argv: pointer arrays
+ * @str: string pointers
+ */
+void _free(char *(*argv)[], char **str)
+{
+	int i = 0;
+
+	free(*str);
+	while (*(*argv + i) != NULL)
+	{
+		free(*(*argv + i));
+		i++;
+	}
+}
+
+void _free2(char ***argv, char **str)
+{
+	int i = 0;
+
+	free(*str);
+	while(*(*argv + i) != NULL)
+	{
+		free((*argv[i]));
+		i++;
+	}
 }
