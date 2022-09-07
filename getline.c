@@ -1,7 +1,4 @@
 #include "main.h"
-#ifndef _POSIX_C_SOURCE
-typedef long int ssize_t;
-#endif
 
 #if !(defined _POSIX_C_SOURCE) || _POSIX_C_SOURCE < 200809L
 
@@ -21,17 +18,17 @@ ssize_t getline2(char **pline_buf, size_t *pn, FILE *fin);
  */
 ssize_t getline(char **pline_buf, size_t *pn, FILE *fin)
 {
-	 if ((pline_buf == NULL) || (pn == NULL) || (fin == NULL))
+	if ((pline_buf == NULL) || (pn == NULL) || (fin == NULL))
 	{
 		errno = EINVAL;
-		return -1;
+		return (-1);
 	}
 	if (*pline_buf == NULL)
 	{
 		*pline_buf = malloc(INITALLOC);
 		if (*pline_buf == NULL)
 		{
-			return -1;
+			return (-1);
 		}
 		else
 		{
@@ -60,7 +57,7 @@ ssize_t getline2(char **pline_buf, size_t *pn, FILE *fin)
 			if (num_read >= *pn)
 			{
 				n_realloc = *pn + ALLOCSTEP;
-				tmp = realloc(*pline_buf, n_realloc + 1); 
+				tmp = realloc(*pline_buf, n_realloc + 1);
 				if (tmp != NULL)
 				{
 					*pline_buf = tmp;
@@ -68,12 +65,12 @@ ssize_t getline2(char **pline_buf, size_t *pn, FILE *fin)
 				}
 				else
 				{
-					return -1;
+					return (-1);
 				}
-				if (SSIZE_MAX < *pn)
+				if (*pn > SSIZE_MAX)
 				{
 					errno = ERANGE;
-					return -1;
+					return (-1);
 				}
 			}
 			(*pline_buf)[num_read - 1] = (char) c;
@@ -85,11 +82,10 @@ ssize_t getline2(char **pline_buf, size_t *pn, FILE *fin)
 		if (c == EOF)
 		{
 			errno = 0;
-			return -1;
+			return (-1);
 		}
 	}
 	(*pline_buf)[num_read] = '\0';
-	return (ssize_t) num_read;
+	return ((ssize_t) num_read);
 }
-
 #endif

@@ -11,6 +11,10 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+#if !(defined _POSIX_C_SOURCE)
+typedef long int ssize_t;
+#endif
+
 extern char **environ;
 
 void _free(char *[], char **);
