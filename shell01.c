@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
  */
 void interactive(void)
 {
-	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
+	char *str, *ptr = NULL, prompt[] = "$ ", *exarg[20];
 	size_t size = 0;
 	ssize_t ret;
 
@@ -65,7 +65,7 @@ void interactive(void)
 	{
 		signal(SIGINT, evt_handler);
 		ptr = NULL;
-		write(1, &prompt, 4);
+		write(1, &prompt, 2);
 		ret = getline(&ptr, &size, stdin);
 		if (ret == -1)
 			exit(errno);

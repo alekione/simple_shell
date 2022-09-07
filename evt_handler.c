@@ -6,7 +6,7 @@
  */
 void evt_handler(int __attribute__((unused)) signum)
 {
-	char *prompt = "\n ($)";
+	char prompt[] = "\n$ ";
 
-	write(1, prompt, 5);
+	write(1, &prompt, 3);
 }
