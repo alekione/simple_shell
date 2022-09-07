@@ -2,7 +2,7 @@
 
 /**
  * processenv - used to set or unset enviroment variables
- * @arg: array of string pointers holding instructions
+ * @argv: array of string pointers holding instructions
  * Return: 0 on success -1 on error
  */
 int  processenv(char *argv[])

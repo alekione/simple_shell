@@ -19,7 +19,7 @@ bool pathexist(char *filepath)
  * stripstr - used to strip newline && space char(s) at the end
  * since it is used to strip a string from cmd line, it is also used
  * to exit the program.
- * @str: string to strip
+ * @ptr: string to strip
  * Return: a stripped string
  */
 void stripstr(char **ptr)
@@ -71,8 +71,8 @@ void strjn(char **str1, char *str2)
 }
 
 /**
- * more_than_one_command - checks whether the passed argument has 
- * 	more than one command
+ * ismore_than_onecommand - checks whether the passed argument has
+ * more than one command
  * @argv: array pointers holding commands
  * Return: true or false
  */
@@ -97,9 +97,9 @@ bool ismore_than_onecommand(char *argv[])
 
 /**
  * iscommand - used to check whether the passed argument is a command
- * 	It uses enviroment variable PATH to check
- * @str: string command to check
- * @env: array pointers holding enviroment var
+ * It uses enviroment variable PATH to check
+ * @ptr: string command to check
+ * @path: pointers holding enviroment value path
  * Return: complete path or NULL incase none
  */
 void iscommand(char **ptr, char *path)

@@ -7,19 +7,16 @@
  *	we pass it as argc in this function.
  *	On interactive shell the number of passed args is not determined unless
  *	it's calculated manually here.
- * @argc: argv counter as given from the main function
- * @argv: arguments passed to the function, from the main and a NULL
+ * @*argv: arguments passed to the function, from the main and a NULL
  *	pointer from interactive shell
  * @str: string holding the passed arguments, the main function passes NULL
  *	while interactive shell passes argument from the user
- * @source: is used to put the difference between arguments from
- *	the main() or other methods.
- *@delim: delimeter to use for separating string
+ * @delim: delimeter to use for separating string
  *	It manupulates the pointers to pointer arrays.
  */
 void createargv(char *(*argv)[], char *str, char delim)
 {
-	char/*ptr = NULL,*/ word[50], chr;
+	char word[50], chr;
 	int i = 0, count = 0, ind = 0, len;
 
 	if (str == NULL)
@@ -34,7 +31,6 @@ void createargv(char *(*argv)[], char *str, char delim)
 		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 		{
 			word[ind] = '\0';
-			/*ptr = strdup(word);*/
 			*(*argv + count) = strdup(word);
 			ind = 0;
 			count++;
@@ -53,7 +49,7 @@ void createargv(char *(*argv)[], char *str, char delim)
 
 /**
  * process_other - executes other commands - custom commands
- * @argv: array of commands 
+ * @argv: array of commands
  * Return: -1 incase of failure 0 on success
  */
 int process_other(char *argv[])
@@ -83,10 +79,11 @@ int process_other(char *argv[])
 /**
  * process_multiple - executes multiple commands in order given
  * @argv: array of pinter commands
+ * Return: 0 for success
  */
 int process_multiple(char *argv[])
 {
-	char *str, *ptr = NULL, *arg[10], *iden[] = {";", "||", "&&"};
+	char *str, *arg[10], *iden[] = {";", "||", "&&"};
 	int i = 0, j, k, start = 0, ind, res;
 
 	while (true)
@@ -125,7 +122,6 @@ int process_multiple(char *argv[])
 			break;
 		i++;
 	}
-	_free2(&argv, &ptr);
 	return (EXIT_SUCCESS);
 }
 
@@ -141,4 +137,21 @@ int complete_process_multiple(char *argv[], char *str)
 		return (process_other(argv));
 	else
 		return (execute_command(argv));
+}
+
+/**
+ * _free2 - free a memory
+ * @argv: array of pointers
+ * @str: string pointer
+ */
+void _free2(char ***argv, char **str)
+{
+	int i = 0;
+
+	free(*str);
+	while (*(*argv + i) != NULL)
+	{
+		free((*argv[i]));
+		i++;
+	}
 }

@@ -1,7 +1,7 @@
 #include "main.h"
 
 /**
- * checkR - checks for read permissions on a given path
+ * isreadable - checks for read permissions on a given path
  * @path: path to check
  * Return: true or false
  */
@@ -13,7 +13,7 @@ bool isreadable(char *path)
 }
 
 /**
- * checkW - checks for write permissions on given path
+ * iswritable - checks for write permissions on given path
  * @path: path to check
  * Return: true or false
  */
@@ -25,7 +25,7 @@ bool iswritable(char *path)
 }
 
 /**
- * checkX - checks whether the given dir/file is executable
+ * isexecutable - checks whether the given dir/file is executable
  * @path: path given
  * Return: true or false
  */

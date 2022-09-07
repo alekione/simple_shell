@@ -5,7 +5,6 @@
  * All function calls start in this function
  * @argc: argv counter
  * @argv: arguments passed to the function/program
- * @env: enviroment/global variables to the program
  * Return: 0 for success
  */
 int main(int argc, char *argv[])
@@ -54,7 +53,6 @@ int main(int argc, char *argv[])
  * interactive - the interactive section is controlled by this function.
  * Works like a shell inside a shell i.e.,
  * it creates its own prompt and execute commands passed into it
- * @env: pointer arrays holding enviroment/global values
  * It does not return anything
  */
 void interactive(void)
@@ -82,7 +80,7 @@ void interactive(void)
 		free(ptr);
 		str = exarg[0];
 		iscommand(&str, getenv("PATH"));
-		if (str == NULL && isreadable(exarg[0]) )
+		if (str == NULL && isreadable(exarg[0]))
 		{
 			process_file(exarg[0]);
 			_free(&exarg, &str);
@@ -94,37 +92,45 @@ void interactive(void)
 			_free(&exarg, &str);
 			continue;
 		}
-		if (str != NULL && isexecutable(str))
-		{
-			free(exarg[0]);
-			exarg[0] = str;
-		}
-		if (str == NULL)
-			process_other(exarg);
-		else if (ismore_than_onecommand(exarg))
-			process_multiple(exarg);
-		else if(!(ismore_than_onecommand(exarg)))
-			execute_command(exarg);
-		if (str != NULL)
-			str = NULL;
+		interactive2(exarg, str);
 	}
+}
+
+/**
+ * interactive2 - continue interactive function
+ * @exarg: arguments commands
+ * @str: string for comparison
+ */
+void interactive2(char *exarg[], char *str)
+{
+	if (str != NULL && isexecutable(str))
+	{
+		free(exarg[0]);
+		exarg[0] = str;
+	}
+
+	if (str == NULL)
+		process_other(exarg);
+	else if (ismore_than_onecommand(exarg))
+		process_multiple(exarg);
+	else if (!(ismore_than_onecommand(exarg)))
+		execute_command(exarg);
 }
 
 /**
  * execute_command - executes a given command
  * @argv: array of command pointers
- * @env: enviroment variables
  * Return: -1 in failure, nothing or zero 0n success
  */
 int execute_command(char *argv[])
 {
 	int wstatus;
 	pid_t cpid;
-	extern char **environ;
 
 	process_dollar_sign(argv);
 	setenv("EXT_VAL", "0", 1);
-	if ((cpid = fork()) == -1)
+	cpid = fork();
+	if (cpid == -1)
 	{
 		perror(getenv("ERR_MSG"));
 		return (EXIT_FAILURE);
@@ -144,8 +150,8 @@ int execute_command(char *argv[])
 }
 
 /**
- * _free: frees a memory
- * @argv: pointer arrays
+ * _free - frees a memory
+ * @(*argv): pointer arrays
  * @str: string pointers
  */
 void _free(char *(*argv)[], char **str)
@@ -156,18 +162,6 @@ void _free(char *(*argv)[], char **str)
 	while (*(*argv + i) != NULL)
 	{
 		free(*(*argv + i));
-		i++;
-	}
-}
-
-void _free2(char ***argv, char **str)
-{
-	int i = 0;
-
-	free(*str);
-	while(*(*argv + i) != NULL)
-	{
-		free((*argv[i]));
 		i++;
 	}
 }

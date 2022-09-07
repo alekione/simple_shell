@@ -3,7 +3,7 @@
 /**
  * process_file - processes a given command file
  * @file: file passed
- * @env: enviroment variables
+ * Return: 0 on success
  */
 int process_file(char *file)
 {
@@ -43,7 +43,6 @@ int process_file(char *file)
 /**
  * process_file2 - continues process_file function
  * @argv: array of commands
- * @env: enviroment variables
  * Return: 0 on success
  */
 int process_file2(char *argv[])

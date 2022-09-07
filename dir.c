@@ -2,7 +2,7 @@
 
 /**
  * cd - change current working dir
- * @argv: array pointer holding instructions
+ * @dir: character pointer holding the new directory argument
  * Return: -1 on error 0 on success
  */
 int cd(char *dir)
@@ -10,7 +10,6 @@ int cd(char *dir)
 	char *cwd = (char *)malloc(100 * sizeof(char));
 	char *hme = "-";
 	int cdir;
-	
 
 	if (cwd == NULL)
 	{

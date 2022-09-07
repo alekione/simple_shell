@@ -15,7 +15,7 @@ void process_dollar_sign(char *argv[])
 		{
 			if (argv[j][i] == '$' && argv[j][i + 1] != '\0')
 			{
-				 argv[j] = string_dollar(&argv[j]);
+				argv[j] = string_dollar(&argv[j]);
 				break;
 			}
 		}
@@ -25,10 +25,10 @@ void process_dollar_sign(char *argv[])
 
 /**
  * string_dollar - converts variable substitiute variable
- * @str: string containing the dillar sign
+ * @ptr: string containing the dillar sign
  * Return: a processed string
  */
-char* string_dollar(char **ptr)
+char *string_dollar(char **ptr)
 {
 	char *str = *ptr, *chr, sptr[1024];
 	int i, j, len, ind = 0, counter = 0;
@@ -53,7 +53,7 @@ char* string_dollar(char **ptr)
 			counter = 1;
 			ind++;
 		}
-		if (counter == 0 && i >= len -1)
+		if (counter == 0 && i >= len - 1)
 		{
 			return (chr);
 		}
@@ -86,7 +86,7 @@ int string_dollar2(int i, int len, char *str, char **chr)
 		for (j = i + 1; j < len; j++)
 		{
 			if (str[j] != '$')
-	 			sptr[ind] = str[j];
+				sptr[ind] = str[j];
 			if (str[j] == '$')
 				break;
 			ind++;
@@ -98,11 +98,11 @@ int string_dollar2(int i, int len, char *str, char **chr)
 }
 
 /**
- * num_string - converts a number to  a string
+ * num_tostring - converts a number to  a string
  * @num: number to convert
  * Return: string number
  */
-char *num_tostring(long unsigned int num)
+char *num_tostring(unsigned int long num)
 {
 	char *sptr, ptr[20], str[20];
 	int i, ind = 0, m = 0;
@@ -125,9 +125,9 @@ char *num_tostring(long unsigned int num)
 }
 
 /**
- * converts a character into a string
- * @c: char to convert
- * Return: string character
+ * _strcpy - copy a string into another
+ * @str1: destination
+ * @str2: source
  */
 void _strcpy(char (*str1)[], char *str2)
 {

@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+extern char **environ;
 
 void _free(char *(*)[], char **);
 void _free2(char ***, char **);
@@ -19,12 +20,12 @@ void sig_handler_child(int);
 void sig_handler_parent(int);
 void strjn(char **, char*);
 void interactive(void);
-void interactive2( char *[], char *);
+void interactive2(char *[], char *);
 bool pathexist(char *);
 void stripstr(char **);
 void createargv(char *(*)[], char *, char);
 int processenv(char *[]);
-int cd (char *);
+int cd(char *);
 bool isreadable(char *);
 bool iswritable(char *);
 bool isexecutable(char *);
