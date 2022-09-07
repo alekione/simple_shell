@@ -76,20 +76,20 @@ void interactive(void)
 		 * the char is causing the program to give unexpected results,
 		 * so it has to be stripped before continuing with the program.
 		 */
-		createargv(&exarg, ptr, ' ');
+		createargv(exarg, ptr, ' ');
 		free(ptr);
 		str = exarg[0];
 		iscommand(&str, getenv("PATH"));
 		if (str == NULL && isreadable(exarg[0]))
 		{
 			process_file(exarg[0]);
-			_free(&exarg, &str);
+			_free(exarg, &str);
 			continue;
 		}
 		if (str != NULL && !(isexecutable(str)))
 		{
 			perror(getenv("ERR_MSG"));
-			_free(&exarg, &str);
+			_free(exarg, &str);
 			continue;
 		}
 		interactive2(exarg, str);
@@ -151,17 +151,17 @@ int execute_command(char *argv[])
 
 /**
  * _free - frees a memory
- * @(*argv): pointer arrays
+ * @argv: pointer arrays
  * @str: string pointers
  */
-void _free(char *(*argv)[], char **str)
+void _free(char *argv[], char **str)
 {
 	int i = 0;
 
 	free(*str);
-	while (*(*argv + i) != NULL)
+	while (*(argv + i) != NULL)
 	{
-		free(*(*argv + i));
+		free(*(argv + i));
 		i++;
 	}
 }

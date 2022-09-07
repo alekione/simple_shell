@@ -7,21 +7,21 @@
  *	we pass it as argc in this function.
  *	On interactive shell the number of passed args is not determined unless
  *	it's calculated manually here.
- * @*argv: arguments passed to the function, from the main and a NULL
+ * @argv: arguments passed to the function, from the main and a NULL
  *	pointer from interactive shell
  * @str: string holding the passed arguments, the main function passes NULL
  *	while interactive shell passes argument from the user
  * @delim: delimeter to use for separating string
  *	It manupulates the pointers to pointer arrays.
  */
-void createargv(char *(*argv)[], char *str, char delim)
+void createargv(char *argv[], char *str, char delim)
 {
 	char word[50], chr;
 	int i = 0, count = 0, ind = 0, len;
 
 	if (str == NULL)
 	{
-		*(*argv + 0) = NULL;
+		*(argv + 0) = NULL;
 		return;
 	}
 	len = strlen(str);
@@ -31,7 +31,7 @@ void createargv(char *(*argv)[], char *str, char delim)
 		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 		{
 			word[ind] = '\0';
-			*(*argv + count) = strdup(word);
+			*(argv + count) = strdup(word);
 			ind = 0;
 			count++;
 		}
@@ -44,7 +44,7 @@ void createargv(char *(*argv)[], char *str, char delim)
 			break;
 		i++;
 	}
-	*(*argv + count) = NULL;
+	*(argv + count) = NULL;
 }
 
 /**
@@ -144,14 +144,14 @@ int complete_process_multiple(char *argv[], char *str)
  * @argv: array of pointers
  * @str: string pointer
  */
-void _free2(char ***argv, char **str)
+void _free2(char **argv, char **str)
 {
 	int i = 0;
 
 	free(*str);
-	while (*(*argv + i) != NULL)
+	while (argv[i] != NULL)
 	{
-		free((*argv[i]));
+		free(argv[i]);
 		i++;
 	}
 }

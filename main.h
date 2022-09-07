@@ -13,8 +13,8 @@
 #include <errno.h>
 extern char **environ;
 
-void _free(char *(*)[], char **);
-void _free2(char ***, char **);
+void _free(char *[], char **);
+void _free2(char **, char **);
 void isexit(char *[]);
 void sig_handler_child(int);
 void sig_handler_parent(int);
@@ -23,7 +23,7 @@ void interactive(void);
 void interactive2(char *[], char *);
 bool pathexist(char *);
 void stripstr(char **);
-void createargv(char *(*)[], char *, char);
+void createargv(char *[], char *, char);
 int processenv(char *[]);
 int cd(char *);
 bool isreadable(char *);

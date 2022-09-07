@@ -112,7 +112,7 @@ void iscommand(char **ptr, char *path)
 		*ptr = NULL;
 		return;
 	}
-	createargv(&patharr, path, ':');
+	createargv(patharr, path, ':');
 	while (patharr[i] != NULL)
 	{
 		len = strlen(patharr[i]);
@@ -142,6 +142,6 @@ void iscommand(char **ptr, char *path)
 		i++;
 	}
 	str = NULL;
-	_free(&patharr, &str);
+	_free(patharr, &str);
 	*ptr = chr1;
 }
