@@ -154,8 +154,8 @@ char *_strtok(char *line, char *delim);
 
 /*======== shell04.c ========*/
 
-/* Execute a command with its entire path */
-int execute(data_of_program *data);
+/* chech whether a passed str is a command */
+char *iscommand(char *str, char *path);
 
 
 /*======== shell05.c ========*/
