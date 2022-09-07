@@ -59,23 +59,23 @@ void interactive(void)
 {
 	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
 	size_t size = 0;
+	ssize_t ret;
 
 	while (true)
 	{
+		signal(SIGINT, evt_handler);
 		ptr = NULL;
 		write(1, &prompt, 4);
-		getline(&ptr, &size, stdin);
+		ret = getline(&ptr, &size, stdin);
+		if (ret == -1)
+			exit(errno);
 		stripstr(&ptr);
 		if (ptr == NULL)
 		{
 			free(ptr);
 			continue;
 		}
-		/**
-		 * i found that getline method, is adding '\n'  char at the end
-		 * the char is causing the program to give unexpected results,
-		 * so it has to be stripped before continuing with the program.
-		 */
+		/* i found that getline method, is adding '\n'  char at the end  */
 		createargv(exarg, ptr, ' ');
 		free(ptr);
 		str = exarg[0];

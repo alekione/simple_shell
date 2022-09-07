@@ -24,9 +24,11 @@ bool pathexist(char *filepath)
  */
 void stripstr(char **ptr)
 {
-	char *str = strdup(*ptr), chr;
+	char *str = strdup(*ptr), chr, end = EOF;
 	int i = 2, len = strlen(str);
 
+	if (*ptr[0] == end)
+		exit(errno);
 	if (len == 1)
 	{
 		*ptr = NULL;
