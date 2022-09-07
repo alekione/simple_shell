@@ -1,123 +1,70 @@
 #include "main.h"
 
-int check_file(char *full_path);
-
 /**
- * find_program - find a program in path
- * @data: a pointer to the program's data
- * Return: 0 if success, errcode otherwise
+ * _print - writes a array of chars in the standar output
+ * @string: pointer to the array of chars
+ * Return: the number of bytes writed or .
+ * On error, -1 is returned, and errno is set appropriately.
  */
-
-int find_program(data_of_program *data)
+int _print(char *string)
 {
-	int i = 0, ret_code = 0;
-	char **directories;
-
-	if (!data->command_name)
-		return (2);
-
-	/**if is a full_path or an executable in the same path */
-	if (data->command_name[0] == '/' || data->command_name[0] == '.')
-		return (check_file(data->command_name));
-
-	free(data->tokens[0]);
-	data->tokens[0] = str_concat(str_duplicate("/"), data->command_name);
-	if (!data->tokens[0])
-		return (2);
-
-	directories = tokenize_path(data);/* search in the PATH */
-
-	if (!directories || !directories[0])
-	{
-		errno = 127;
-		return (127);
-	}
-	for (i = 0; directories[i]; i++)
-	{/* appends the function_name to path */
-		directories[i] = str_concat(directories[i], data->tokens[0]);
-		ret_code = check_file(directories[i]);
-		if (ret_code == 0 || ret_code == 126)
-		{/* the file was found, is not a directory and has execute permisions*/
-			errno = 0;
-			free(data->tokens[0]);
-			data->tokens[0] = str_duplicate(directories[i]);
-			free_array_of_pointers(directories);
-			return (ret_code);
-		}
-	}
-	free(data->tokens[0]);
-	data->tokens[0] = NULL;
-	free_array_of_pointers(directories);
-	return (ret_code);
+	return (write(STDOUT_FILENO, string, str_length(string)));
+}
+/**
+ * _printe - writes a array of chars in the standar error
+ * @string: pointer to the array of chars
+ * Return: the number of bytes writed or .
+ * On error, -1 is returned, and errno is set appropriately.
+ */
+int _printe(char *string)
+{
+	return (write(STDERR_FILENO, string, str_length(string)));
 }
 
 /**
- * tokenize_path - tokenize the path in directories
- * @data: a pointer to the program's data
- * Return: array of path directories
+ * _print_error - writes a array of chars in the standart error
+ * @data: a pointer to the program's data'
+ * @errorcode: error code to print
+ * Return: the number of bytes writed or .
+ * On error, -1 is returned, and errno is set appropriately.
  */
-
-char **tokenize_path(data_of_program *data)
+int _print_error(int errorcode, data_of_program *data)
 {
-	int i = 0;
-	int counter_directories = 2;
-	char **tokens = NULL;
-	char *PATH;
+	char n_as_string[10] = {'\0'};
 
-	/* get the PATH value*/
-	PATH = env_get_key("PATH", data);
-	if ((PATH == NULL) || PATH[0] == '\0')
-	{/*path not found*/
-		return (NULL);
-	}
+	long_to_string((long) data->exec_counter, n_as_string, 10);
 
-	PATH = str_duplicate(PATH);
-
-	/* find the number of directories in the PATH */
-	for (i = 0; PATH[i]; i++)
+	if (errorcode == 2 || errorcode == 3)
 	{
-		if (PATH[i] == ':')
-			counter_directories++;
+		_printe(data->program_name);
+		_printe(": ");
+		_printe(n_as_string);
+		_printe(": ");
+		_printe(data->tokens[0]);
+		if (errorcode == 2)
+			_printe(": Illegal number: ");
+		else
+			_printe(": can't cd to ");
+		_printe(data->tokens[1]);
+		_printe("\n");
 	}
-
-	/* reserve space for the array of pointers */
-	tokens = malloc(sizeof(char *) * counter_directories);
-
-	/*tokenize and duplicate each token of path*/
-	i = 0;
-	tokens[i] = str_duplicate(_strtok(PATH, ":"));
-	while (tokens[i++])
+	else if (errorcode == 127)
 	{
-		tokens[i] = str_duplicate(_strtok(NULL, ":"));
+		_printe(data->program_name);
+		_printe(": ");
+		_printe(n_as_string);
+		_printe(": ");
+		_printe(data->command_name);
+		_printe(": not found\n");
 	}
-
-	free(PATH);
-	PATH = NULL;
-	return (tokens);
-
-}
-
-/**
- * check_file - checks if exists a file, if it is not a dairectory and
- * if it has excecution permisions for permisions.
- * @full_path: pointer to the full file name
- * Return: 0 on success, or error code if it exists.
- */
-
-int check_file(char *full_path)
-{
-	struct stat sb;
-
-	if (stat(full_path, &sb) != -1)
+	else if (errorcode == 126)
 	{
-		if (S_ISDIR(sb.st_mode) ||  access(full_path, X_OK))
-		{
-			errno = 126;
-			return (126);
-		}
-		return (0);
+		_printe(data->program_name);
+		_printe(": ");
+		_printe(n_as_string);
+		_printe(": ");
+		_printe(data->command_name);
+		_printe(": Permission denied\n");
 	}
-	/*if not exist the file*/
-	errno = 127;
-	return (127);
+	return (0);
 }

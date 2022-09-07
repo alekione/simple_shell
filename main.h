@@ -12,10 +12,57 @@
 #include <sys/stat.h> /* for use of stat function */
 #include <signal.h> /* for signal management */
 #include <fcntl.h> /* for open files*/
+#define PROMPT_MSG " ($)"
+#define UNUSED __attribute__((unused))
+#define BUFFER_SIZE 1024
 
-/************* MACROS **************/
+/************* FORMATTED STRING FOR HELP BUILT IN **************/
 
-#include "macros.h" /* for msg help and prompt */
+#define HELP_CD_MSG "cd=\n"\
+"cd:\tcd [dir]\n\n"\
+"	Change the shell working directory.\n\n"\
+"	If no argument is given to cd the command will be interpreted\n"\
+"	as cd $HOME.\n"\
+"	if the argumenthelp is - (cd -), the command will be interpreted\n"\
+"	as cd $OLDPWD.\n\n"
+
+#define HELP_EXIT_MSG "exit=\n"\
+"exit:\texit [STATUS]\n\n"\
+"	Exit of the simple-shell.\n\n"\
+"	Exits the shell with a status of N.  If N is omitted, the exit status\n"\
+"	is that of the last command executed.\n\n"
+
+#define HELP_ENV_MSG "env=\n"\
+"env:\tenv \n\n"\
+"	Print environment.\n\n"\
+"	The env command will be print a complete list of enviroment variables.\n\n"
+
+#define HELP_SETENV_MSG "setenv=\n"\
+"setenv:\tsetenv VARIABLE VALUE\n\n"\
+"	Change or add an environment variable.\n\n"\
+"	initialize a new environment variable, or modify an existing one\n"\
+"	When there are not correct numbers of arguments print error message.\n\n"
+
+#define HELP_UNSETENV_MSG "unsetenv=\n"\
+"unsetenv:\tunsetenv VARIABLE\n\n"\
+"	The unsetenv function deletes one variable from the environment.\n\n"\
+"	Wen there are not correct numbers of arguments print error message.\n\n"
+
+#define HELP_MSG "help=\n"\
+"help:\thelp [BUILTIN_NAME]\n\n"\
+"	Display information about builtin commands.\n\n"\
+"	Displays brief summaries of builtin commands.  If BUILTIN_NAME is\n"\
+"	specified, gives detailed help on all commands matching BUILTIN_NAME,\n"\
+"	otherwise the list of help topics is printed BUILTIN_NAME list.\n"\
+"	Arguments:\n\n"\
+"	BUILTIN_NAME specifiying a help topic.\n\n"\
+"	cd\t[dir]\n"\
+"	exit\t[status]\n"\
+"	env\n"\
+"	setenv\t[variable value]\n"\
+"	unset\t[variable]\n"\
+"	help\t[built_name]\n\n"
+
 
 /************* STRUCTURES **************/
 
@@ -57,7 +104,10 @@ typedef struct builtins
 /************* MAIN FUNCTIONS *************/
 
 
-/*========  shell.c  ========*/
+/*========  main.c  ========*/
+
+/* main - entry point of the program */
+int main(int argc, char *argv[], char *env[]);
 
 /* Inicialize the struct with the info of the program */
 void inicialize_data(data_of_program *data, int arc, char *argv[], char **env);
@@ -69,7 +119,7 @@ void sisifo(char *prompt, data_of_program *data);
 void handle_ctrl_c(int opr UNUSED);
 
 
-/*========  _getline.c  ========*/
+/*========  shell01.c  ========*/
 
 /* Read one line of the standar input*/
 int _getline(data_of_program *data);
@@ -78,7 +128,7 @@ int _getline(data_of_program *data);
 int check_logic_ops(char *array_commands[], int i, char array_operators[]);
 
 
-/*======== expansions.c ========*/
+/*======== shell02.c ========*/
 
 /* expand variables */
 void expand_variables(data_of_program *data);
@@ -86,11 +136,11 @@ void expand_variables(data_of_program *data);
 /* expand aliases */
 void expand_alias(data_of_program *data);
 
-/* append the string to the end of the buffer*/
+/* append the string to the end of the buffer */
 int buffer_add(char *buffer, char *str_to_add);
 
 
-/*======== str_tok.c ========*/
+/*======== shell03.c ========*/
 
 /* Separate the string in tokens using a designed delimiter */
 void tokenize(data_of_program *data);
@@ -99,19 +149,19 @@ void tokenize(data_of_program *data);
 char *_strtok(char *line, char *delim);
 
 
-/*======== execute.c ========*/
+/*======== shell04.c ========*/
 
 /* Execute a command with its entire path */
 int execute(data_of_program *data);
 
 
-/*======== builtins_list.c ========*/
+/*======== shell05.c ========*/
 
 /* If match a builtin, executes it */
 int builtins_list(data_of_program *data);
 
 
-/*======== find_in_path.c ========*/
+/*======== shell06.c ========*/
 
 /* Creates an array of the path directories */
 char **tokenize_path(data_of_program *data);
@@ -123,7 +173,7 @@ int find_program(data_of_program *data);
 /************** HELPERS FOR MEMORY MANAGEMENT **************/
 
 
-/*======== helpers_free.c ========*/
+/*======== shell07.c ========*/
 
 /* Frees the memory for directories */
 void free_array_of_pointers(char **directories);
@@ -138,7 +188,7 @@ void free_all_data(data_of_program *data);
 /************** BUILTINS **************/
 
 
-/*======== builtins_more.c ========*/
+/*======== shell08.c ========*/
 
 /* Close the shell */
 int builtin_exit(data_of_program *data);
@@ -156,7 +206,7 @@ int builtin_help(data_of_program *data);
 int builtin_alias(data_of_program *data);
 
 
-/*======== builtins_env.c ========*/
+/*======== shell09.c ========*/
 
 /* Shows the environment where the shell runs */
 int builtin_env(data_of_program *data);
@@ -171,7 +221,7 @@ int builtin_unset_env(data_of_program *data);
 /************** HELPERS FOR ENVIRONMENT VARIABLES MANAGEMENT **************/
 
 
-/*======== env_management.c ========*/
+/*======== shell10.c ========*/
 
 /* Gets the value of an environment variable */
 char *env_get_key(char *name, data_of_program *data);
@@ -189,7 +239,7 @@ void print_environ(data_of_program *data);
 /************** HELPERS FOR PRINTING **************/
 
 
-/*======== helpers_print.c ========*/
+/*======== shell11.c ========*/
 
 /* Prints a string in the standar output */
 int _print(char *string);
@@ -204,7 +254,7 @@ int _print_error(int errorcode, data_of_program *data);
 /************** HELPERS FOR STRINGS MANAGEMENT **************/
 
 
-/*======== helpers_string.c ========*/
+/*======== shell12.c ========*/
 
 /* Counts the number of characters of a string */
 int str_length(char *string);
@@ -222,7 +272,7 @@ char *str_concat(char *string1, char *string2);
 void str_reverse(char *string);
 
 
-/*======== helpers_numbers.c ========*/
+/*======== shell13.c ========*/
 
 /* Cast from int to string */
 void long_to_string(long number, char *string, int base);
@@ -234,7 +284,7 @@ int _atoi(char *s);
 int count_characters(char *string, char *character);
 
 
-/*======== alias_management.c ========*/
+/*======== shell14.c ========*/
 
 /* print the list of alias */
 int print_alias(data_of_program *data, char *alias);

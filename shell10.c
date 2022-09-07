@@ -1,112 +1,128 @@
 #include "main.h"
 
 /**
- * expand_variables - expand variables
- * @data: a pointer to a struct of the program's data
- *
- * Return: nothing, but sets errno.
+ * env_get_key - gets the value of an environment variable
+ * @key: the environment variable of interest
+ * @data: struct of the program's data
+ * Return: a pointer to the value of the variable or NULL if it doesn't exist
  */
-void expand_variables(data_of_program *data)
+char *env_get_key(char *key, data_of_program *data)
 {
-	int i, j;
-	char line[BUFFER_SIZE] = {0}, expansion[BUFFER_SIZE] = {'\0'}, *temp;
+	int i, key_length = 0;
 
-	if (data->input_line == NULL)
-		return;
-	buffer_add(line, data->input_line);
-	for (i = 0; line[i]; i++)
-		if (line[i] == '#')
-			line[i--] = '\0';
-		else if (line[i] == '$' && line[i + 1] == '?')
-		{
-			line[i] = '\0';
-			long_to_string(errno, expansion, 10);
-			buffer_add(line, expansion);
-			buffer_add(line, data->input_line + i + 2);
+	/* validate the arguments */
+	if (key == NULL || data->env == NULL)
+		return (NULL);
+
+	/* obtains the leng of the variable requested */
+	key_length = str_length(key);
+
+	for (i = 0; data->env[i]; i++)
+	{/* Iterates through the environ and check for coincidence of the vame */
+		if (str_compare(key, data->env[i], key_length) &&
+		 data->env[i][key_length] == '=')
+		{/* returns the value of the key NAME=  when find it*/
+			return (data->env[i] + key_length + 1);
 		}
-		else if (line[i] == '$' && line[i + 1] == '$')
-		{
-			line[i] = '\0';
-			long_to_string(getpid(), expansion, 10);
-			buffer_add(line, expansion);
-			buffer_add(line, data->input_line + i + 2);
-		}
-		else if (line[i] == '$' && (line[i + 1] == ' ' || line[i + 1] == '\0'))
-			continue;
-		else if (line[i] == '$')
-		{
-			for (j = 1; line[i + j] && line[i + j] != ' '; j++)
-				expansion[j - 1] = line[i + j];
-			temp = env_get_key(expansion, data);
-			line[i] = '\0', expansion[0] = '\0';
-			buffer_add(expansion, line + i + j);
-			temp ? buffer_add(line, temp) : 1;
-			buffer_add(line, expansion);
-		}
-	if (!str_compare(data->input_line, line, 0))
-	{
-		free(data->input_line);
-		data->input_line = str_duplicate(line);
 	}
+	/* returns NULL if did not find it */
+	return (NULL);
 }
 
 /**
- * expand_alias - expans aliases
- * @data: a pointer to a struct of the program's data
- *
- * Return: nothing, but sets errno.
+ * env_set_key - overwrite the value of the environment variable
+ * or create it if does not exist.
+ * @key: name of the variable to set
+ * @value: new value
+ * @data: struct of the program's data
+ * Return: 1 if the parameters are NULL, 2 if there is an erroror 0 if sucess.
  */
-void expand_alias(data_of_program *data)
+
+int env_set_key(char *key, char *value, data_of_program *data)
 {
-	int i, j, was_expanded = 0;
-	char line[BUFFER_SIZE] = {0}, expansion[BUFFER_SIZE] = {'\0'}, *temp;
+	int i, key_length = 0, is_new_key = 1;
 
-	if (data->input_line == NULL)
-		return;
+	/* validate the arguments */
+	if (key == NULL || value == NULL || data->env == NULL)
+		return (1);
 
-	buffer_add(line, data->input_line);
+	/* obtains the leng of the variable requested */
+	key_length = str_length(key);
 
-	for (i = 0; line[i]; i++)
-	{
-		for (j = 0; line[i + j] && line[i + j] != ' '; j++)
-			expansion[j] = line[i + j];
-		expansion[j] = '\0';
-
-		temp = get_alias(data, expansion);
-		if (temp)
-		{
-			expansion[0] = '\0';
-			buffer_add(expansion, line + i + j);
-			line[i] = '\0';
-			buffer_add(line, temp);
-			line[str_length(line)] = '\0';
-			buffer_add(line, expansion);
-			was_expanded = 1;
+	for (i = 0; data->env[i]; i++)
+	{/* Iterates through the environ and check for coincidence of the vame */
+		if (str_compare(key, data->env[i], key_length) &&
+		 data->env[i][key_length] == '=')
+		{/* If key already exists */
+			is_new_key = 0;
+			/* free the entire variable, it is new created below */
+			free(data->env[i]);
+			break;
 		}
-		break;
 	}
-	if (was_expanded)
-	{
-		free(data->input_line);
-		data->input_line = str_duplicate(line);
+	/* make an string of the form key=value */
+	data->env[i] = str_concat(str_duplicate(key), "=");
+	data->env[i] = str_concat(data->env[i], value);
+
+	if (is_new_key)
+	{/* if the variable is new, it is create at end of actual list and we need*/
+	/* to put the NULL value in the next position */
+		data->env[i + 1] = NULL;
 	}
+	return (0);
 }
 
 /**
- * buffer_add - append string at end of the buffer
- * @buffer: buffer to be filled
- * @str_to_add: string to be copied in the buffer
- * Return: nothing, but sets errno.
+ * env_remove_key - remove a key from the environment
+ * @key: the key to remove
+ * @data: the sructure of the program's data
+ * Return: 1 if the key was removed, 0 if the key does not exist;
  */
-int buffer_add(char *buffer, char *str_to_add)
+int env_remove_key(char *key, data_of_program *data)
 {
-	int length, i;
+	int i, key_length = 0;
 
-	length = str_length(buffer);
-	for (i = 0; str_to_add[i]; i++)
-	{
-		buffer[length + i] = str_to_add[i];
+	/* validate the arguments */
+	if (key == NULL || data->env == NULL)
+		return (0);
+
+	/* obtains the leng of the variable requested */
+	key_length = str_length(key);
+
+	for (i = 0; data->env[i]; i++)
+	{/* iterates through the environ and checks for coincidences */
+		if (str_compare(key, data->env[i], key_length) &&
+		 data->env[i][key_length] == '=')
+		{/* if key already exists, remove them */
+			free(data->env[i]);
+
+			/* move the others keys one position down */
+			i++;
+			for (; data->env[i]; i++)
+			{
+				data->env[i - 1] = data->env[i];
+			}
+			/* put the NULL value at the new end of the list */
+			data->env[i - 1] = NULL;
+			return (1);
+		}
 	}
-	buffer[length + i] = '\0';
-	return (length + i);
+	return (0);
+}
+
+
+/**
+ * print_environ - prints the current environ
+ * @data: struct for the program's data
+ * Return: nothing
+ */
+void print_environ(data_of_program *data)
+{
+	int j;
+
+	for (j = 0; data->env[j]; j++)
+	{
+		_print(data->env[j]);
+		_print("\n");
+	}
 }

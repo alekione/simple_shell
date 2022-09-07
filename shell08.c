@@ -1,128 +1,159 @@
 #include "main.h"
 
 /**
- * env_get_key - gets the value of an environment variable
- * @key: the environment variable of interest
- * @data: struct of the program's data
- * Return: a pointer to the value of the variable or NULL if it doesn't exist
+ * builtin_exit - exit of the program with the status
+ * @data: struct for the program's data
+ * Return: zero if sucess, or other number if its declared in the arguments
  */
-char *env_get_key(char *key, data_of_program *data)
+int builtin_exit(data_of_program *data)
 {
-	int i, key_length = 0;
+	int i;
 
-	/* validate the arguments */
-	if (key == NULL || data->env == NULL)
-		return (NULL);
-
-	/* obtains the leng of the variable requested */
-	key_length = str_length(key);
-
-	for (i = 0; data->env[i]; i++)
-	{/* Iterates through the environ and check for coincidence of the vame */
-		if (str_compare(key, data->env[i], key_length) &&
-		 data->env[i][key_length] == '=')
-		{/* returns the value of the key NAME=  when find it*/
-			return (data->env[i] + key_length + 1);
-		}
+	if (data->tokens[1] != NULL)
+	{/*if exists arg for exit, check if is a number*/
+		for (i = 0; data->tokens[1][i]; i++)
+			if ((data->tokens[1][i] < '0' || data->tokens[1][i] > '9')
+				&& data->tokens[1][i] != '+')
+			{/*if is not a number*/
+				errno = 2;
+				return (2);
+			}
+		errno = _atoi(data->tokens[1]);
 	}
-	/* returns NULL if did not find it */
-	return (NULL);
+	free_all_data(data);
+	exit(errno);
 }
 
 /**
- * env_set_key - overwrite the value of the environment variable
- * or create it if does not exist.
- * @key: name of the variable to set
- * @value: new value
- * @data: struct of the program's data
- * Return: 1 if the parameters are NULL, 2 if there is an erroror 0 if sucess.
+ * builtin_cd - change the current directory
+ * @data: struct for the program's data
+ * Return: zero if sucess, or other number if its declared in the arguments
  */
-
-int env_set_key(char *key, char *value, data_of_program *data)
+int builtin_cd(data_of_program *data)
 {
-	int i, key_length = 0, is_new_key = 1;
+	char *dir_home = env_get_key("HOME", data), *dir_old = NULL;
+	char old_dir[128] = {0};
+	int error_code = 0;
 
-	/* validate the arguments */
-	if (key == NULL || value == NULL || data->env == NULL)
-		return (1);
+	if (data->tokens[1])
+	{
+		if (str_compare(data->tokens[1], "-", 0))
+		{
+			dir_old = env_get_key("OLDPWD", data);
+			if (dir_old)
+				error_code = set_work_directory(data, dir_old);
+			_print(env_get_key("PWD", data));
+			_print("\n");
 
-	/* obtains the leng of the variable requested */
-	key_length = str_length(key);
-
-	for (i = 0; data->env[i]; i++)
-	{/* Iterates through the environ and check for coincidence of the vame */
-		if (str_compare(key, data->env[i], key_length) &&
-		 data->env[i][key_length] == '=')
-		{/* If key already exists */
-			is_new_key = 0;
-			/* free the entire variable, it is new created below */
-			free(data->env[i]);
-			break;
+			return (error_code);
+		}
+		else
+		{
+			return (set_work_directory(data, data->tokens[1]));
 		}
 	}
-	/* make an string of the form key=value */
-	data->env[i] = str_concat(str_duplicate(key), "=");
-	data->env[i] = str_concat(data->env[i], value);
+	else
+	{
+		if (!dir_home)
+			dir_home = getcwd(old_dir, 128);
 
-	if (is_new_key)
-	{/* if the variable is new, it is create at end of actual list and we need*/
-	/* to put the NULL value in the next position */
-		data->env[i + 1] = NULL;
+		return (set_work_directory(data, dir_home));
 	}
 	return (0);
 }
 
 /**
- * env_remove_key - remove a key from the environment
- * @key: the key to remove
- * @data: the sructure of the program's data
- * Return: 1 if the key was removed, 0 if the key does not exist;
+ * set_work_directory - set the work directory
+ * @data: struct for the program's data
+ * @new_dir: path to be set as work directory
+ * Return: zero if sucess, or other number if its declared in the arguments
  */
-int env_remove_key(char *key, data_of_program *data)
+int set_work_directory(data_of_program *data, char *new_dir)
 {
-	int i, key_length = 0;
+	char old_dir[128] = {0};
+	int err_code = 0;
 
-	/* validate the arguments */
-	if (key == NULL || data->env == NULL)
-		return (0);
+	getcwd(old_dir, 128);
 
-	/* obtains the leng of the variable requested */
-	key_length = str_length(key);
+	if (!str_compare(old_dir, new_dir, 0))
+	{
+		err_code = chdir(new_dir);
+		if (err_code == -1)
+		{
+			errno = 2;
+			return (3);
+		}
+		env_set_key("PWD", new_dir, data);
+	}
+	env_set_key("OLDPWD", old_dir, data);
+	return (0);
+}
 
-	for (i = 0; data->env[i]; i++)
-	{/* iterates through the environ and checks for coincidences */
-		if (str_compare(key, data->env[i], key_length) &&
-		 data->env[i][key_length] == '=')
-		{/* if key already exists, remove them */
-			free(data->env[i]);
+/**
+ * builtin_help - shows the environment where the shell runs
+ * @data: struct for the program's data
+ * Return: zero if sucess, or other number if its declared in the arguments
+ */
+int builtin_help(data_of_program *data)
+{
+	int i, length = 0;
+	char *mensajes[6] = {NULL};
 
-			/* move the others keys one position down */
-			i++;
-			for (; data->env[i]; i++)
-			{
-				data->env[i - 1] = data->env[i];
-			}
-			/* put the NULL value at the new end of the list */
-			data->env[i - 1] = NULL;
+	mensajes[0] = HELP_MSG;
+
+	/* validate args */
+	if (data->tokens[1] == NULL)
+	{
+		_print(mensajes[0] + 6);
+		return (1);
+	}
+	if (data->tokens[2] != NULL)
+	{
+		errno = E2BIG;
+		perror(data->command_name);
+		return (5);
+	}
+	mensajes[1] = HELP_EXIT_MSG;
+	mensajes[2] = HELP_ENV_MSG;
+	mensajes[3] = HELP_SETENV_MSG;
+	mensajes[4] = HELP_UNSETENV_MSG;
+	mensajes[5] = HELP_CD_MSG;
+
+	for (i = 0; mensajes[i]; i++)
+	{
+		length = str_length(data->tokens[1]);
+		if (str_compare(data->tokens[1], mensajes[i], length))
+		{
+			_print(mensajes[i] + length + 1);
 			return (1);
 		}
 	}
+	/*if there is no match, print error and return -1 */
+	errno = EINVAL;
+	perror(data->command_name);
 	return (0);
 }
 
-
 /**
- * print_environ - prints the current environ
+ * builtin_alias - add, remove or show aliases
  * @data: struct for the program's data
- * Return: nothing
+ * Return: zero if sucess, or other number if its declared in the arguments
  */
-void print_environ(data_of_program *data)
+int builtin_alias(data_of_program *data)
 {
-	int j;
+	int i = 0;
 
-	for (j = 0; data->env[j]; j++)
-	{
-		_print(data->env[j]);
-		_print("\n");
+	/* if there are no arguments, print all environment */
+	if (data->tokens[1] == NULL)
+		return (print_alias(data, NULL));
+
+	while (data->tokens[++i])
+	{/* if there are arguments, set or print each env variable*/
+		if (count_characters(data->tokens[i], "="))
+			set_alias(data->tokens[i], data);
+		else
+			print_alias(data, data->tokens[i]);
 	}
+
+	return (0);
 }
