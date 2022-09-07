@@ -63,7 +63,6 @@ void interactive(void)
 
 	while (true)
 	{
-		signal(SIGINT, evt_handler);
 		ptr = NULL;
 		write(1, &prompt, 2);
 		ret = getline(&ptr, &size, stdin);
