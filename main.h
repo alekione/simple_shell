@@ -118,6 +118,9 @@ void sisifo(char *prompt, data_of_program *data);
 /* Print the prompt in a new line */
 void handle_ctrl_c(int opr UNUSED);
 
+/* Execute a command with its entire path */
+int execute(data_of_program *data);
+
 
 /*========  shell01.c  ========*/
 

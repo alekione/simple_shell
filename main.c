@@ -9,19 +9,53 @@
 int main(int argc, char *argv[], char *env[])
 {
 	data_of_program data_struct = {NULL}, *data = &data_struct;
-	char *prompt = "";
+	char *prompt = "", *str;
+	extern char *environ[];
 
 	inicialize_data(data, argc, argv, env);
 
 	signal(SIGINT, handle_ctrl_c);
 
-	if (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO) && argc == 1)
-	{/* We are in the terminal, interactive mode */
-		errno = 2;/*???????*/
+	if (argc == 1)
+	{/* enter interactive mode */
 		prompt = PROMPT_MSG;
+		sisifo(prompt, data);
 	}
-	errno = 0;
-	sisifo(prompt, data);
+	else
+	{
+		for (i = 0; i < argc; i++)
+			argv[i] = argv[i + 1];
+		argv[argc] = NULL;
+		str = iscommand(argv[0], getenv("PATH"));
+		if (str != NULL && access(str, X_OK) == -1)
+		{
+			perror(data->program-name);
+			return (errno);
+		}
+		if (str != NULL && access(str, X_OK) == 0)
+		{
+			argv[0] = str;
+			execve(argv[0], argv, environ);
+			perror(data->program_name);
+			return (errno);
+		}
+		if (str = NULL && access(argv[0], R_OK) == 0)
+		{
+			data->file_descriptor = open(argv[0], O_RDONLY);
+			if (data->file_descriptor == -1)
+			{
+				perror(data->program_name);
+				return (errno);
+			}
+			prompt = "";
+			sisinfo(prompt, data);
+		}
+		else
+		{
+			perror(data->program_name);
+			return (errno);
+		}
+	}	
 	return (0);
 }
 
@@ -54,18 +88,6 @@ void inicialize_data(data_of_program *data, int argc, char *argv[], char **env)
 	/* define the file descriptor to be readed*/
 	if (argc == 1)
 		data->file_descriptor = STDIN_FILENO;
-	else
-	{
-		data->file_descriptor = open(argv[1], O_RDONLY);
-		if (data->file_descriptor == -1)
-		{
-			_printe(data->program_name);
-			_printe(": 0: Can't open ");
-			_printe(argv[1]);
-			_printe("\n");
-			exit(127);
-		}
-	}
 	data->tokens = NULL;
 	data->env = malloc(sizeof(char *) * 50);
 	if (env)
