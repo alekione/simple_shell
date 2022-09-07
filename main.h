@@ -157,6 +157,9 @@ char *_strtok(char *line, char *delim);
 /* chech whether a passed str is a command */
 char *iscommand(char *str, char *path);
 
+/* create an array from a str */
+void createargv(char *argv[], char *str, char delim);
+
 
 /*======== shell05.c ========*/
 

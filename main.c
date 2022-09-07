@@ -11,7 +11,7 @@ int main(int argc, char *argv[], char *env[])
 	data_of_program data_struct = {NULL}, *data = &data_struct;
 	char *prompt = "", *str;
 	extern char *environ[];
-	int i;
+	int i, err = 0;
 
 	inicialize_data(data, argc, argv, env);
 
@@ -31,33 +31,36 @@ int main(int argc, char *argv[], char *env[])
 		if (str != NULL && access(str, X_OK) == -1)
 		{
 			perror(data->program_name);
-			return (errno);
+			err = errno;
 		}
-		if (str != NULL && access(str, X_OK) == 0)
+		else if (str != NULL && access(str, X_OK) == 0)
 		{
 			argv[0] = str;
 			execve(argv[0], argv, environ);
 			perror(data->program_name);
-			return (errno);
+			err = errno;
 		}
-		if (str == NULL && access(argv[0], R_OK) == 0)
+		else if (str == NULL && access(argv[0], R_OK) == 0)
 		{
 			data->file_descriptor = open(argv[0], O_RDONLY);
 			if (data->file_descriptor == -1)
 			{
 				perror(data->program_name);
-				return (errno);
+				err = errno;
 			}
-			prompt = "";
-			sisifo(prompt, data);
+			else
+			{
+				prompt = "";
+				sisifo(prompt, data);
+			}
 		}
 		else
 		{
 			perror(data->program_name);
-			return (errno);
+			err = errno;
 		}
 	}	
-	return (0);
+	return (err);
 }
 
 /**
