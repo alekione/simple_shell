@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
-	setenv("ERR_MSG", argv[0], 1);
 	if (argc == 1)
 	{
 		interactive();
@@ -57,39 +56,38 @@ int main(int argc, char *argv[])
  */
 void interactive(void)
 {
-	char *str, *ptr = NULL, prompt[] = " ($)", *exarg[20];
+	char *str, *ptr = NULL, prompt[] = "$ ", *exarg[20];
 	size_t size = 0;
+	ssize_t ret;
 
 	while (true)
 	{
 		ptr = NULL;
-		write(1, &prompt, 4);
-		getline(&ptr, &size, stdin);
+		write(1, &prompt, 2);
+		ret = getline(&ptr, &size, stdin);
+		if (ret == -1)
+			exit(errno);
 		stripstr(&ptr);
 		if (ptr == NULL)
 		{
 			free(ptr);
 			continue;
 		}
-		/**
-		 * i found that getline method, is adding '\n'  char at the end
-		 * the char is causing the program to give unexpected results,
-		 * so it has to be stripped before continuing with the program.
-		 */
-		createargv(&exarg, ptr, ' ');
+		/* i found that getline method, is adding '\n'  char at the end  */
+		createargv(exarg, ptr, ' ');
 		free(ptr);
 		str = exarg[0];
 		iscommand(&str, getenv("PATH"));
 		if (str == NULL && isreadable(exarg[0]))
 		{
 			process_file(exarg[0]);
-			_free(&exarg, &str);
+			_free(exarg, &str);
 			continue;
 		}
 		if (str != NULL && !(isexecutable(str)))
 		{
 			perror(getenv("ERR_MSG"));
-			_free(&exarg, &str);
+			_free(exarg, &str);
 			continue;
 		}
 		interactive2(exarg, str);
@@ -151,17 +149,17 @@ int execute_command(char *argv[])
 
 /**
  * _free - frees a memory
- * @(*argv): pointer arrays
+ * @argv: pointer arrays
  * @str: string pointers
  */
-void _free(char *(*argv)[], char **str)
+void _free(char *argv[], char **str)
 {
 	int i = 0;
 
 	free(*str);
-	while (*(*argv + i) != NULL)
+	while (*(argv + i) != NULL)
 	{
-		free(*(*argv + i));
+		free(*(argv + i));
 		i++;
 	}
 }

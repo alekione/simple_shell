@@ -24,9 +24,11 @@ bool pathexist(char *filepath)
  */
 void stripstr(char **ptr)
 {
-	char *str = strdup(*ptr), chr;
+	char *str = strdup(*ptr), chr, end = EOF;
 	int i = 2, len = strlen(str);
 
+	if (*ptr[0] == end)
+		exit(errno);
 	if (len == 1)
 	{
 		*ptr = NULL;
@@ -112,7 +114,7 @@ void iscommand(char **ptr, char *path)
 		*ptr = NULL;
 		return;
 	}
-	createargv(&patharr, path, ':');
+	createargv(patharr, path, ':');
 	while (patharr[i] != NULL)
 	{
 		len = strlen(patharr[i]);
@@ -142,6 +144,6 @@ void iscommand(char **ptr, char *path)
 		i++;
 	}
 	str = NULL;
-	_free(&patharr, &str);
+	_free(patharr, &str);
 	*ptr = chr1;
 }

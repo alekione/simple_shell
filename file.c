@@ -26,17 +26,17 @@ int process_file(char *file)
 		if (rd == -1 || rd == 0)
 			break;
 		stripstr(&ptr);
-		createargv(&argv, ptr, ' ');
+		createargv(argv, ptr, ' ');
 		ret = process_file2(argv);
 		if (ret == EXIT_FAILURE)
 		{
-			_free(&argv, &ptr);
+			_free(argv, &ptr);
 			fclose(op);
 			return (EXIT_FAILURE);
 		}
 	}
 	fclose(op);
-	_free(&argv, &ptr);
+	_free(argv, &ptr);
 	return (EXIT_SUCCESS);
 }
 
