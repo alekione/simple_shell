@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
-	setenv("ERR_MSG", argv[0], 1);
 	if (argc == 1)
 	{
 		interactive();
@@ -57,14 +56,14 @@ int main(int argc, char *argv[])
  */
 void interactive(void)
 {
-	char *str, *ptr = NULL, prompt[] = "$ ", *exarg[20];
+	char *str, *ptr = NULL,/* prompt[] = "$ ",*/ *exarg[20];
 	size_t size = 0;
 	ssize_t ret;
 
 	while (true)
 	{
 		ptr = NULL;
-		write(1, &prompt, 2);
+	/*	write(1, &prompt, 2); */
 		ret = getline(&ptr, &size, stdin);
 		if (ret == -1)
 			exit(errno);
