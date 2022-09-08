@@ -15,6 +15,7 @@
 #define PROMPT_MSG " ($)"
 #define UNUSED __attribute__((unused))
 #define BUFFER_SIZE 1024
+extern char *environ[];
 
 /************* FORMATTED STRING FOR HELP BUILT IN **************/
 
@@ -107,7 +108,7 @@ typedef struct builtins
 /*========  main.c  ========*/
 
 /* main - entry point of the program */
-int main(int argc, char *argv[], char *env[]);
+int main2(char *argv[], data_of_program *data, char *str);
 
 /* Inicialize the struct with the info of the program */
 void inicialize_data(data_of_program *data, int arc, char *argv[], char **env);
@@ -155,7 +156,7 @@ char *_strtok(char *line, char *delim);
 /*======== shell04.c ========*/
 
 /* chech whether a passed str is a command */
-char *iscommand(char *str, char *path);
+void iscommand(char **str, char *path);
 
 /* create an array from a str */
 void createargv(char *argv[], char *str, char delim);

@@ -10,7 +10,6 @@ int main(int argc, char *argv[], char *env[])
 {
 	data_of_program data_struct = {NULL}, *data = &data_struct;
 	char *prompt = "", *str;
-	extern char *environ[];
 	int i, err = 0;
 
 	inicialize_data(data, argc, argv, env);
@@ -27,7 +26,8 @@ int main(int argc, char *argv[], char *env[])
 		for (i = 0; i < argc; i++)
 			argv[i] = argv[i + 1];
 		argv[argc] = NULL;
-		str = iscommand(argv[0], getenv("PATH"));
+		str = argv[0];
+		iscommand(&str, getenv("PATH"));
 		if (str != NULL && access(str, X_OK) == -1)
 		{
 			perror(data->program_name);
@@ -40,26 +40,43 @@ int main(int argc, char *argv[], char *env[])
 			perror(data->program_name);
 			err = errno;
 		}
-		else if (str == NULL && access(argv[0], R_OK) == 0)
-		{
-			data->file_descriptor = open(argv[0], O_RDONLY);
-			if (data->file_descriptor == -1)
-			{
-				perror(data->program_name);
-				err = errno;
-			}
-			else
-			{
-				prompt = "";
-				sisifo(prompt, data);
-			}
-		}
 		else
+			err = main2(argv, data, str);
+	}
+	return (err);
+}
+
+/**
+ * main2 - continues a main function
+ * @argv: program arguments
+ * @data: pointer to program data
+ * @str: string for comparison
+ * Return: errno
+ */
+int main2(char *argv[], data_of_program *data, char *str)
+{
+	int err;
+	char *prompt;
+
+	if (str == NULL && access(argv[0], R_OK) == 0)
+	{
+		data->file_descriptor = open(argv[0], O_RDONLY);
+		if (data->file_descriptor == -1)
 		{
 			perror(data->program_name);
 			err = errno;
 		}
-	}	
+		else
+		{
+			prompt = "";
+			sisifo(prompt, data);
+		}
+	}
+	else
+	{
+		perror(data->program_name);
+		err = errno;
+	}
 	return (err);
 }
 
@@ -104,7 +121,7 @@ void inicialize_data(data_of_program *data, int argc, char *argv[], char **env)
 	data->env[i] = NULL;
 	env = data->env;
 
-	data->alias_list = malloc(sizeof(char *) * 20);
+	data->alias_list = (char **)malloc(20 * sizeof(data->alias_list));
 	for (i = 0; i < 20; i++)
 	{
 		data->alias_list[i] = NULL;
