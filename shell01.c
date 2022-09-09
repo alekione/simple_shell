@@ -1,143 +1,118 @@
 #include "main.h"
 
 /**
-* _getline - read one line from the prompt.
-* @data: struct for the program's data
-*
-* Return: reading counting bytes.
-*/
-int _getline(data_of_program *data)
-{
-	char buff[BUFFER_SIZE] = {'\0'};
-	static char *array_commands[10] = {NULL};
-	static char array_operators[10] = {'\0'};
-	ssize_t bytes_read, i = 0;
-
-	/* check if doesnot exist more commands in the array */
-	/* and checks the logical operators */
-	if (!array_commands[0] || (array_operators[0] == '&' && errno != 0) ||
-		(array_operators[0] == '|' && errno == 0))
-	{
-		/*free the memory allocated in the array if it exists */
-		for (i = 0; array_commands[i]; i++)
-		{
-			free(array_commands[i]);
-			array_commands[i] = NULL;
-		}
-
-		/* read from the file descriptor int to buff */
-		bytes_read = read(data->file_descriptor, &buff, BUFFER_SIZE - 1);
-		if (bytes_read == 0)
-			return (-1);
-
-		/* split lines for \n or ; */
-		i = 0;
-		do {
-			array_commands[i] = str_duplicate(_strtok(i ? NULL : buff, "\n;"));
-			/*checks and split for && and || operators*/
-			i = check_logic_ops(array_commands, i, array_operators);
-		} while (array_commands[i++]);
-	}
-
-	/*obtains the next command (command 0) and remove it for the array*/
-	data->input_line = array_commands[0];
-	for (i = 0; array_commands[i]; i++)
-	{
-		array_commands[i] = array_commands[i + 1];
-		array_operators[i] = array_operators[i + 1];
-	}
-
-	return (str_length(data->input_line));
-}
-
-
-/**
-* check_logic_ops - checks and split for && and || operators
-* @array_commands: array of the commands.
-* @i: index in the array_commands to be checked
-* @array_operators: array of the logical operators for each previous command
-*
-* Return: index of the last command in the array_commands.
-*/
-int check_logic_ops(char *array_commands[], int i, char array_operators[])
-{
-	char *temp = NULL;
-	int j;
-
-	/* checks for the & char in the command line*/
-	for (j = 0; array_commands[i] != NULL  && array_commands[i][j]; j++)
-	{
-		if (array_commands[i][j] == '&' && array_commands[i][j + 1] == '&')
-		{
-			/* split the line when chars && was found */
-			temp = array_commands[i];
-			array_commands[i][j] = '\0';
-			array_commands[i] = str_duplicate(array_commands[i]);
-			array_commands[i + 1] = str_duplicate(temp + j + 2);
-			i++;
-			array_operators[i] = '&';
-			free(temp);
-			j = 0;
-		}
-		if (array_commands[i][j] == '|' && array_commands[i][j + 1] == '|')
-		{
-			/* split the line when chars || was found */
-			temp = array_commands[i];
-			array_commands[i][j] = '\0';
-			array_commands[i] = str_duplicate(array_commands[i]);
-			array_commands[i + 1] = str_duplicate(temp + j + 2);
-			i++;
-			array_operators[i] = '|';
-			free(temp);
-			j = 0;
-		}
-	}
-	return (i);
-}
-
-/**
- * execute - execute a command with its entire path variables.
- * @data: a pointer to the program's data
- * Return: If sucess returns zero, otherwise, return -1.
+ * ismultiple_command - checks whether the passed argument has
+ * more than one command
+ * @argv: array pointers holding commands
+ * Return: true or false
  */
-int execute(data_of_program *data)
+bool ismultiple_command(char *argv[])
 {
-	int retval = 0, status;
-	pid_t pidd;
+	char *str[] = {"||", "&&", ";"};
+	int m = 0, j;
 
-	/* check for program in built ins */
-	retval = builtins_list(data);
-	if (retval != -1)/* if program was found in built ins */
-		return (retval);
-
-	/* check for program file system */
-	retval = find_program(data);
-	if (retval)
-	{/* if program not found */
-		return (retval);
+	while (m < 3)
+	{
+		j = 0;
+		while (argv[j] != NULL)
+		{
+			if (strcmp(argv[j], str[m]) == 0)
+				return (true);
+			j++;
+		}
+		m++;
 	}
-	else
-	{/* if program was found */
-		pidd = fork(); /* create a child process */
-		if (pidd == -1)
-		{ /* if the fork call failed */
-			perror(data->command_name);
-			exit(EXIT_FAILURE);
+	return (false);
+}
+
+/**
+ * iscommand - used to check whether the passed argument is a command
+ * It uses enviroment variable PATH to check
+ * @ptr: string command to check
+ */
+bool iscommand(char **str, command *cmd)
+{
+	char *env, *chr1, *patharr[ARR_SIZE];
+	int i, j, len, diff = 0;
+
+	env = _getenv("PATH", cmd);
+	createargv(patharr, env, ':', cmd);
+	for (i = 0; patharr[i] != NULL; i++)
+	{
+		len = _strlen(patharr[i]);
+		diff = len;
+		for (j = 0; j < len; j++)
+		{
+			if (*str[j] == patharr[i][j])
+			{
+				diff--;
+				continue;
+			}
+			chr1 = patharr[i];
+			strjn(&chr1, "/", cmd);
+			strjn(&chr1, *str, cmd);
+			if (isexecutable(chr1))
+				break;
+			chr1 = NULL;
+			break;
 		}
-		if (pidd == 0)
-		{/* I am the child process, I execute the program*/
-			retval = execve(data->tokens[0], data->tokens, data->env);
-			if (retval == -1) /* if error when execve*/
-				perror(data->command_name), exit(EXIT_FAILURE);
+		if (diff == 0)
+			break;
+		if (chr1 != NULL)
+		{
+			errno = 0;
+			*str = chr1;
+			break;
 		}
-		else
-		{/* I am the father, I wait and check the exit status of the child */
-			wait(&status);
-			if (WIFEXITED(status))
-				errno = WEXITSTATUS(status);
-			else if (WIFSIGNALED(status))
-				errno = 128 + WTERMSIG(status);
+	}
+	if (diff == 0 || chr1 != NULL)
+		return (true);
+	return (false);
+}
+
+/**
+ * add_to_history - add a pointer to th history
+ * @str: pointer to memory location
+ */
+void add_to_hist(char **str, command *cmd)
+{
+	char **list2;
+	int i;
+
+	if (cmd->hist_count == cmd->max_count - 1)
+	{
+		cmd->max_count += ARR_SIZE;
+		list2 = realloc(cmd->list, cmd->max_count * sizeof(char *));
+		if (list2 == NULL)
+		{
+			perror(cmd->p_name);
+			return;
 		}
+		for (i = cmd->hist_count; i < cmd->max_count; i++)
+			list2[i] = NULL;
+		cmd->list = list2;
+	}
+	cmd->list[cmd->hist_count] = *str;
+	cmd->hist_count += 1;
+	cmd->list[cmd->hist_count] = NULL;
+}
+
+/**
+ * _strcmp - compares two string for similarity
+ * @str1: string 1
+ * @string2: string 2
+ * Return: 0 if true or -1
+ */
+int _strcmp(char *str1, char *str2)
+{
+	int i;
+
+	if (_strlen(str1) != _strlen(str2))
+		return (-1);
+	for (i = 0; i < _strlen(str1); i++)
+	{
+		if (str1[i] != str2[i])
+			return (-1);
 	}
 	return (0);
 }

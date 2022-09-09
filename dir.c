@@ -1,0 +1,30 @@
+#include "main.h"
+
+/**
+ * cd - change current working dir
+ * @dir: character pointer holding the new directory argument
+ * Return: -1 on error 0 on success
+ */
+int cd(char *argv[], command *cmd)
+{
+	char *cwd, *hme = "-", *dir = argv[1];
+	int cdir;
+
+	if (_strcmp(dir, hme) == 0)
+		dir = _getenv("HOME", cmd);
+	if (access(dir, F_OK | X_OK) == -1)
+	{
+		perror(cmd->p_name);
+		return (EXIT_FAILURE);
+	}
+	cwd = _getenv("PWD", cmd);
+	set_env("PWD", dir, cmd);
+	cdir = chdir(dir);
+	if (cdir == -1)
+	{
+		perror(cmd->p_name);
+		set_env("PWD", cwd, cmd);
+		return (EXIT_FAILURE);
+	}
+	return (EXIT_SUCCESS);
+}

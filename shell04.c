@@ -1,94 +1,71 @@
 #include "main.h"
 
 /**
- * iscommand - used to check whether the passed argument is a command
- * It uses enviroment variable PATH to check
- * @ptr: string command to check
- * @path: pointers holding enviroment value path
- * Return: complete path or NULL incase none
+ * execute_command - executes a given command
+ * @argv: array of command pointers
+ * Return: -1 in failure, nothing or zero 0n success
  */
-void iscommand(char **ptr, char *path)
+int execute_command(char *argv[], command *cmd)
 {
-	char *chr1, *patharr[20], *str = *ptr;
-	int i = 0, j, len, diff;
+	int wstatus;
+	pid_t cpid;
 
-	if (path == NULL || str == NULL)
+	cpid = fork();
+	if (cpid == -1)
 	{
-		*ptr = NULL;
-		return;
+		perror(cmd->p_name);
+		return (EXIT_FAILURE);
 	}
-	createargv(patharr, path, ':');
-	while (patharr[i] != NULL)
+	if (cpid == 0)
 	{
-		len = strlen(patharr[i]);
-		diff = len;
-		for (j = 0; j < len; j++)
-		{
-			if (str[j] == patharr[i][j])
-			{
-				diff--;
-				continue;
-			}
-			chr1 = str_concat(patharr[i], "/");
-			chr1 = str_concat(chr1, str);
-			if (access(chr1, X_OK) == 0)
-				break;
-			chr1 = NULL;
-			break;
-		}
-		if (diff == 0)
-			chr1 = str;
-		if (chr1 != NULL || diff == 0)
-			break;
-		i++;
+		execve(argv[0], argv, cmd->env);
+		perror(cmd->p_name);
+		exit(EXIT_FAILURE);
 	}
-	str = NULL;
-	*ptr = chr1;
+	waitpid(cpid, &wstatus, 0);
+	if (WIFEXITED(wstatus))
+		return (WEXITSTATUS(wstatus));
+	return (EXIT_SUCCESS);
 }
 
 /**
- * createargv - is used to create character pointer array, for execve() method
- *	that is used to run commands.
- *	Since in main, the number of arguments passed is already given, so
- *	we pass it as argc in this function.
- *	On interactive shell the number of passed args is not determined unless
- *	it's calculated manually here.
- * @argv: arguments passed to the function, from the main and a NULL
- *	pointer from interactive shell
- * @str: string holding the passed arguments, the main function passes NULL
- *	while interactive shell passes argument from the user
- * @delim: delimeter to use for separating string
- *	It manupulates the pointers to pointer arrays.
+ * execute_custom - executes the custom commands
+ * @argv: array of command and arguments
+ * Return: 0 on success
  */
-void createargv(char *argv[], char *str, char delim)
+int execute_custom(char *argv[], command *cmd)
 {
-	char word[50], chr;
-	int i = 0, count = 0, ind = 0, len;
+	char *ext = "exit", *setenv = "setenv", *unset = "unsetenv",
+		*chd = "cd", *chr;
+	int i, ret;
 
-	if (str == NULL)
+	if (_strcmp(argv[1], ext) == 0)
 	{
-		*(argv + 0) = NULL;
-		return;
+		if (argv[1] == NULL)
+			is_exit(0, cmd);
+		chr = argv[1];
+		for (i = 0; chr[i] != '\0'; i++)
+		{
+			if (chr[i] > '9' || chr[i] < '0')
+			{
+				errno = EINVAL;
+				perror(cmd->p_name);
+				ret = EXIT_FAILURE;
+			}
+		}
+		is_exit(atoi(chr), cmd);
 	}
-	len = strlen(str);
-	while (i <= len)
+	else if (_strcmp(argv[0], setenv) == 0)
+		ret = set_env(argv[1], argv[2], cmd);
+	else if (_strcmp(argv[0], unset) == 0)
+		ret = unset_env(argv[1], cmd);
+	else if (_strcmp(argv[0], chd) == 0)
+		ret = cd(argv, cmd);
+	else
 	{
-		chr = str[i];
-		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
-		{
-			word[ind] = '\0';
-			*(argv + count) = strdup(word);
-			ind = 0;
-			count++;
-		}
-		if (chr != delim)
-		{
-			word[ind] = chr;
-			ind++;
-		}
-		if (chr == '#')
-			break;
-		i++;
+		errno = 2;
+		perror(cmd->p_name);
+		return (EXIT_FAILURE);
 	}
-	*(argv + count) = NULL;
+	return (ret);
 }

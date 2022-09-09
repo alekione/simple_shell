@@ -1,35 +1,57 @@
 #include "main.h"
 
 /**
- * builtins_list - search for match and execute the associate builtin
- * @data: struct for the program's data
- * Return: Returns the return of the function executed is there is a match,
- * otherwise returns -1.
- **/
-int builtins_list(data_of_program *data)
+ * process_multiple - processes multiple commands
+ */
+int process_multiple(char *argv[], command *cmd)
 {
-	int iterator;
-	builtins options[] = {
-		{"exit", builtin_exit},
-		{"help", builtin_help},
-		{"cd", builtin_cd},
-		{"alias", builtin_alias},
-		{"env", builtin_env},
-		{"setenv", builtin_set_env},
-		{"unsetenv", builtin_unset_env},
-		{NULL, NULL}
-	};
+	int i = 0, j, k, start = 0, ind, ret;
+	char *str, *iden[] = {"||", "&&", ";"};
+	bool isdone = false;
 
-/*walk through the structure*/
-	for (iterator = 0; options[iterator].builtin != NULL; iterator++)
+	while (true)
 	{
-/*if there is a match between the given command and a builtin,*/
-		if (str_compare(options[iterator].builtin, data->command_name, 0))
+		str = argv[i];
+		for (j = 0; j < 3; j++)
 		{
-/*execute the function, and return the return value of the function*/
-			return (options[iterator].function(data));
+			if (_strcmp(iden[j], str) == 0 || str == NULL)
+			{
+				ind = 0;
+				for (k = start; k < i; k++, ind++)
+					cmd->argv2[ind] = argv[k];
+				cmd->argv2[ind] = NULL;
+				ret = process_multiple2(cmd);
+				if (ret == EXIT_FAILURE && j == 1)
+					return (EXIT_FAILURE);
+				if (ret == EXIT_SUCCESS && j == 0)
+					return (EXIT_SUCCESS);
+				if (isdone)
+					break;
+				start = i + 1;
+			}
 		}
-/*if there is no match return -1 */
+		if (str == NULL || isdone)
+			break;
 	}
-	return (-1);
+	return (EXIT_SUCCESS);
+}
+
+/**
+ * process_multiple2 - continues process_multiple
+ * @argv: command array
+ * Return: success or failure
+ */
+int process_multiple2(command *cmd)
+{
+	int ret = 0;
+
+	if (isreadable(cmd->argv2[0]) && !(iscommand(&cmd->argv2[0], cmd)))
+		ret = process_file(cmd->argv2[0], cmd);
+	else if (iscommand(&cmd->argv2[0], cmd))
+		ret = execute_command(cmd->argv2, cmd);
+	else 
+		ret = execute_custom(cmd->argv2, cmd);
+	if (ret == EXIT_SUCCESS)
+		errno = 0;
+	return (ret);
 }

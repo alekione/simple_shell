@@ -1,112 +1,136 @@
 #include "main.h"
 
 /**
- * expand_variables - expand variables
- * @data: a pointer to a struct of the program's data
- *
- * Return: nothing, but sets errno.
+ * createargv - used t separate words from a string
+ * @argv: array of pointers to hold words
+ * @str: string to split
+ * @delim: delimeter used for spltting
  */
-void expand_variables(data_of_program *data)
+void createargv(char *argv[], char *str, char delim, command *cmd)
 {
-	int i, j;
-	char line[BUFFER_SIZE] = {0}, expansion[BUFFER_SIZE] = {'\0'}, *temp;
+	char word[ARR_SIZE], chr, *ptr;
+	int i = 0, count = 0, ind = 0, len;
 
-	if (data->input_line == NULL)
-		return;
-	buffer_add(line, data->input_line);
-	for (i = 0; line[i]; i++)
-		if (line[i] == '#')
-			line[i--] = '\0';
-		else if (line[i] == '$' && line[i + 1] == '?')
-		{
-			line[i] = '\0';
-			long_to_string(errno, expansion, 10);
-			buffer_add(line, expansion);
-			buffer_add(line, data->input_line + i + 2);
-		}
-		else if (line[i] == '$' && line[i + 1] == '$')
-		{
-			line[i] = '\0';
-			long_to_string(getpid(), expansion, 10);
-			buffer_add(line, expansion);
-			buffer_add(line, data->input_line + i + 2);
-		}
-		else if (line[i] == '$' && (line[i + 1] == ' ' || line[i + 1] == '\0'))
-			continue;
-		else if (line[i] == '$')
-		{
-			for (j = 1; line[i + j] && line[i + j] != ' '; j++)
-				expansion[j - 1] = line[i + j];
-			temp = env_get_key(expansion, data);
-			line[i] = '\0', expansion[0] = '\0';
-			buffer_add(expansion, line + i + j);
-			temp ? buffer_add(line, temp) : 1;
-			buffer_add(line, expansion);
-		}
-	if (!str_compare(data->input_line, line, 0))
+	if (str == NULL)
 	{
-		free(data->input_line);
-		data->input_line = str_duplicate(line);
+		argv[0] = NULL;
+		return;
 	}
+	len = _strlen(str);
+	for (i = 0; i <= len; i++)
+	{
+		chr = str[i];
+		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
+		{
+			word[ind] = '\0';
+			ptr = _strdup(word, cmd);
+			argv[count] = ptr;
+			ind = 0;
+			count++;
+		}
+		if (chr != delim)
+		{
+			word[ind] = chr;
+			ind++;
+		}
+		if (chr == '#')
+			break;
+	}
+	argv[count] = NULL;
 }
 
 /**
- * expand_alias - expans aliases
- * @data: a pointer to a struct of the program's data
- *
- * Return: nothing, but sets errno.
+ * _strdup - duplicates a given string
+ * @str: string to duplicate
+ * Return: a new string
  */
-void expand_alias(data_of_program *data)
+char *_strdup(char *str, command *cmd)
 {
-	int i, j, was_expanded = 0;
-	char line[BUFFER_SIZE] = {0}, expansion[BUFFER_SIZE] = {'\0'}, *temp;
+	int len, i;
+	char *ptr;
 
-	if (data->input_line == NULL)
-		return;
-
-	buffer_add(line, data->input_line);
-
-	for (i = 0; line[i]; i++)
+	len = _strlen(str);
+	ptr = (char *)malloc((len + 1) * sizeof(char));
+	if (ptr == NULL)
 	{
-		for (j = 0; line[i + j] && line[i + j] != ' '; j++)
-			expansion[j] = line[i + j];
-		expansion[j] = '\0';
-
-		temp = get_alias(data, expansion);
-		if (temp)
-		{
-			expansion[0] = '\0';
-			buffer_add(expansion, line + i + j);
-			line[i] = '\0';
-			buffer_add(line, temp);
-			line[str_length(line)] = '\0';
-			buffer_add(line, expansion);
-			was_expanded = 1;
-		}
-		break;
+		perror(cmd->p_name);
+		is_exit(errno, cmd);
 	}
-	if (was_expanded)
-	{
-		free(data->input_line);
-		data->input_line = str_duplicate(line);
-	}
+	for (i = 0; i < len; i++)
+		ptr[i] = str[i];
+	str[len] = '\0';
+	add_to_hist(&ptr, cmd);
+	return (ptr);
 }
 
 /**
- * buffer_add - append string at end of the buffer
- * @buffer: buffer to be filled
- * @str_to_add: string to be copied in the buffer
- * Return: nothing, but sets errno.
+ * _strlen - calculates length of a string
+ * @str: string to count
+ * Return: length of the string
  */
-int buffer_add(char *buffer, char *str_to_add)
+int _strlen(char *str)
 {
-	int length, i;
+	int len;
 
-	length = str_length(buffer);
-	for (i = 0; str_to_add[i]; i++)
+	for (len = 0; str[len] != '\0'; len++)
+		;
+	return (len);
+}
+
+/**
+ * stripstr - used to strip newline && space char(s) at the end
+ * since it is used to strip a string from cmd line, it is also used
+ * to exit the program.
+ * @ptr: string to strip
+ * Return: a stripped string
+ */
+void stripstr(char **ptr)
+{
+	char *str = *ptr;
+	int i = 0, j, len = _strlen(*ptr);
+
+	if (len == 1)
 	{
-		buffer[length + i] = str_to_add[i];
+		*ptr = NULL;
+		return;
 	}
-	buffer[length + i] = '\0';
-	return (length + i);
+	str[len - 1] = '\0';
+	while (true)
+	{
+		if (i == len - 1)
+			break;
+		if (str[i] == ' ' && str[i - 1] == ' ')
+		{
+			for (j = i; j < len - 1; j++)
+				str[j] = str[j + 1];
+			len--;
+		}
+		i++;
+	}
+	*ptr = str;
+}
+
+/**
+ * strjn - join two pointer strings from the main
+ * Works like strcat function
+ * @str1: first string
+ * @str2: second string
+ */
+void strjn(char **str1, char *str2, command *cmd)
+{
+	char *str, *ptr = _strdup(*str1, cmd);
+	int len1, len2 = _strlen(str2);
+	int i;
+
+	if (str2 == NULL || len2 == 0)
+		return;
+	len1 = _strlen(ptr);
+	str = (char *)malloc((len1 + len2 + 1) * sizeof(char));
+	for (i = 0; i < len1; i++)
+		str[i] = ptr[i];
+	for (i = 0; i < len2; i++)
+		str[i + len1] = str2[i];
+	str[len1 + len2] = '\0';
+	add_to_hist(&str, cmd);
+	*str1 = str;
 }
