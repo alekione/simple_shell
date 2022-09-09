@@ -16,7 +16,6 @@ typedef long int ssize_t;
 #endif
 
 extern char **environ;
-extern char *p_name;
 
 void evt_handler(int);
 void _free(char *[], char **);

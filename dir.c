@@ -13,14 +13,14 @@ int cd(char *dir)
 
 	if (cwd == NULL)
 	{
-		perror(p_name);
+		perror(getenv("p_name"));
 		return (EXIT_FAILURE);
 	}
 	if (strcmp(dir, hme) == 0)
 		dir = getenv("HOME");
 	if (!(pathexist(dir)))
 	{
-		perror(p_name);
+		perror(getenv("p_name"));
 		free(cwd);
 		return (EXIT_FAILURE);
 	}
@@ -29,7 +29,7 @@ int cd(char *dir)
 	cdir = chdir(dir);
 	if (cdir == -1)
 	{
-		perror(p_name);
+		perror(getenv("p_name"));
 		setenv("PWD", cwd, 1);
 		free(cwd);
 		return (EXIT_FAILURE);

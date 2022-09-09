@@ -1,5 +1,4 @@
 #include "main.h"
-char *p_name;
 
 /**
  * main - entry point of simple shell program
@@ -17,7 +16,7 @@ int main(int argc, char *argv[])
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
-	p_name = argv[0];
+	setenv("p_name", argv[0], 1);
 	if (argc == 1)
 	{
 		interactive();
@@ -35,7 +34,7 @@ int main(int argc, char *argv[])
 	}
 	if (str != NULL && !(isexecutable(str)))
 	{
-		perror(p_name);
+		perror(getenv("p_name"));
 		free(str);
 		return (EXIT_FAILURE);
 	}
@@ -89,7 +88,7 @@ void interactive(void)
 		}
 		if (str != NULL && !(isexecutable(str)))
 		{
-			perror(p_name);
+			perror(getenv("p_name"));
 			_free(exarg, &str);
 			continue;
 		}
@@ -134,13 +133,13 @@ int execute_command(char *argv[])
 	cpid = fork();
 	if (cpid == -1)
 	{
-		perror(p_name);
+		perror(getenv("p_name"));
 		return (EXIT_FAILURE);
 	}
 	if (cpid == 0)
 	{
 		execve(argv[0], argv, environ);
-		perror(p_name);
+		perror(getenv("p_name"));
 		exit(EXIT_FAILURE);
 	}
 	waitpid(cpid, &wstatus, 0);

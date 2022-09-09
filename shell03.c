@@ -103,7 +103,7 @@ int process_multiple(char *argv[])
 				iscommand(&str, getenv("PATH"));
 				if (str != NULL && !(isexecutable(str)))
 				{
-					perror(p_name);
+					perror(getenv("p_name"));
 					return (EXIT_FAILURE);
 				}
 				if (str != NULL && isexecutable(str))

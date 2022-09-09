@@ -16,7 +16,7 @@ int process_file(char *file)
 	op = fopen(file, "r");
 	if (op == NULL)
 	{
-		perror(p_name);
+		perror(getenv("p_name"));
 		return (EXIT_FAILURE);
 	}
 	while (true)
@@ -58,7 +58,7 @@ int process_file2(char *argv[])
 		iscommand(&str, getenv("PATH"));
 		if (str != NULL && !(isexecutable(str)))
 		{
-			perror(p_name);
+			perror(getenv("p_name"));
 			return (EXIT_FAILURE);
 		}
 		else if (str != NULL && isexecutable(str))
