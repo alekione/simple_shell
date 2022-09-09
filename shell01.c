@@ -109,7 +109,6 @@ void interactive2(char *exarg[], char *str)
 {
 	if (str != NULL && isexecutable(str))
 	{
-		free(exarg[0]);
 		exarg[0] = str;
 	}
 
