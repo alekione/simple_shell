@@ -1,4 +1,5 @@
 #include "main.h"
+char *p_name;
 
 /**
  * main - entry point of simple shell program
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
 	 * the program should enter into interactive mode
 	 * else, get argument number and determine the method to use
 	 */
+	p_name = argv[0];
 	if (argc == 1)
 	{
 		interactive();
@@ -33,7 +35,7 @@ int main(int argc, char *argv[])
 	}
 	if (str != NULL && !(isexecutable(str)))
 	{
-		perror(getenv("ERR_MSG"));
+		perror(p_name);
 		free(str);
 		return (EXIT_FAILURE);
 	}
@@ -45,6 +47,7 @@ int main(int argc, char *argv[])
 		process_multiple(argv);
 	else if (str != NULL && !(ismore_than_onecommand(argv)))
 		execute_command(argv);
+	free(str);
 	return (EXIT_SUCCESS);
 }
 
@@ -86,11 +89,14 @@ void interactive(void)
 		}
 		if (str != NULL && !(isexecutable(str)))
 		{
-			perror(getenv("ERR_MSG"));
+			perror(p_name);
 			_free(exarg, &str);
 			continue;
 		}
 		interactive2(exarg, str);
+		if (str != NULL)
+			str = NULL;
+		_free(exarg, &str);
 	}
 }
 
@@ -126,24 +132,21 @@ int execute_command(char *argv[])
 	pid_t cpid;
 
 	process_dollar_sign(argv);
-	setenv("EXT_VAL", "0", 1);
 	cpid = fork();
 	if (cpid == -1)
 	{
-		perror(getenv("ERR_MSG"));
+		perror(p_name);
 		return (EXIT_FAILURE);
 	}
 	if (cpid == 0)
 	{
 		execve(argv[0], argv, environ);
-		setenv("EXT_VAL", num_tostring(errno), 1);
-		perror(getenv("ERR_MSG"));
+		perror(p_name);
 		exit(EXIT_FAILURE);
 	}
 	waitpid(cpid, &wstatus, 0);
 	if (WIFEXITED(wstatus))
 		return (WEXITSTATUS(wstatus));
-	setenv("EXT_VAL", num_tostring(errno), 1);
 	return (EXIT_SUCCESS);
 }
 

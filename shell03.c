@@ -24,14 +24,14 @@ void createargv(char *argv[], char *str, char delim)
 		*(argv + 0) = NULL;
 		return;
 	}
-	len = strlen(str);
+	len = _strlen(str);
 	while (i <= len)
 	{
 		chr = str[i];
 		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 		{
 			word[ind] = '\0';
-			*(argv + count) = strdup(word);
+			*(argv + count) = _strdup(word);
 			ind = 0;
 			count++;
 		}
@@ -103,7 +103,7 @@ int process_multiple(char *argv[])
 				iscommand(&str, getenv("PATH"));
 				if (str != NULL && !(isexecutable(str)))
 				{
-					perror(getenv("ERR_MSG"));
+					perror(p_name);
 					return (EXIT_FAILURE);
 				}
 				if (str != NULL && isexecutable(str))

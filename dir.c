@@ -13,14 +13,14 @@ int cd(char *dir)
 
 	if (cwd == NULL)
 	{
-		perror(getenv("ERR_MSG"));
+		perror(p_name);
 		return (EXIT_FAILURE);
 	}
 	if (strcmp(dir, hme) == 0)
 		dir = getenv("HOME");
 	if (!(pathexist(dir)))
 	{
-		perror(getenv("ERR_MSG"));
+		perror(p_name);
 		free(cwd);
 		return (EXIT_FAILURE);
 	}
@@ -29,13 +29,11 @@ int cd(char *dir)
 	cdir = chdir(dir);
 	if (cdir == -1)
 	{
-		setenv("EXT_VAL", num_tostring(errno), 1);
-		perror(getenv("ERR_MSG"));
+		perror(p_name);
 		setenv("PWD", cwd, 1);
 		free(cwd);
 		return (EXIT_FAILURE);
 	}
 	free(cwd);
-	setenv("EXT_VAL", "0", 1);
 	return (EXIT_SUCCESS);
 }

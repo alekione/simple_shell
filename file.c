@@ -16,8 +16,7 @@ int process_file(char *file)
 	op = fopen(file, "r");
 	if (op == NULL)
 	{
-		perror(getenv("ERR_MSG"));
-		setenv("EXT_VAL", num_tostring(errno), 1);
+		perror(p_name);
 		return (EXIT_FAILURE);
 	}
 	while (true)
@@ -37,6 +36,7 @@ int process_file(char *file)
 	}
 	fclose(op);
 	_free(argv, &ptr);
+	errno = 0;
 	return (EXIT_SUCCESS);
 }
 
@@ -58,15 +58,15 @@ int process_file2(char *argv[])
 		iscommand(&str, getenv("PATH"));
 		if (str != NULL && !(isexecutable(str)))
 		{
-			perror(getenv("ERR_MSG"));
+			perror(p_name);
 			return (EXIT_FAILURE);
 		}
-		if (str != NULL && isexecutable(str))
+		else if (str != NULL && isexecutable(str))
 		{
 			argv[0] = str;
 			ret = execute_command(argv);
 		}
-		if (str == NULL)
+		else if (str == NULL)
 			ret = process_other(argv);
 	}
 	free(str);

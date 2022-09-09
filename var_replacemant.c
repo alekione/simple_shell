@@ -77,7 +77,7 @@ int string_dollar2(int i, int len, char *str, char **chr)
 
 	j = 1;
 	if (str[i + 1] == '?')
-		*chr = getenv("EXT_VAL");
+		*chr = num_tostring(errno);
 	else if (str[i + 1] == '$')
 		*chr = num_tostring(getppid());
 	else
