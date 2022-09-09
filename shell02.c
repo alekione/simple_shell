@@ -25,7 +25,7 @@ bool pathexist(char *filepath)
 void stripstr(char **ptr)
 {
 	char *str = strdup(*ptr), chr, end = EOF;
-	int i = 2, len = _strlen(str);
+	int i = 2, len = strlen(str);
 
 	if (*ptr[0] == end)
 		exit(errno);
@@ -55,13 +55,13 @@ void stripstr(char **ptr)
  */
 void strjn(char **str1, char *str2)
 {
-	char *str, *ptr = _strdup(*str1);
-	int len1, len2 = _strlen(str2);
+	char *str, *ptr = strdup(*str1);
+	int len1, len2 = strlen(str2);
 	int i;
 
 	if (str2 == NULL || len2 == 0)
 		return;
-	len1 = _strlen(ptr);
+	len1 = strlen(ptr);
 	str = (char *)malloc((len1 + len2 + 1) * sizeof(char));
 	for (i = 0; i < len1; i++)
 		str[i] = ptr[i];
@@ -117,7 +117,7 @@ void iscommand(char **ptr, char *path)
 	createargv(patharr, path, ':');
 	while (patharr[i] != NULL)
 	{
-		len = _strlen(patharr[i]);
+		len = strlen(patharr[i]);
 		diff = len;
 		for (j = 0; j < len; j++)
 		{

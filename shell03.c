@@ -24,14 +24,14 @@ void createargv(char *argv[], char *str, char delim)
 		*(argv + 0) = NULL;
 		return;
 	}
-	len = _strlen(str);
+	len = strlen(str);
 	while (i <= len)
 	{
 		chr = str[i];
 		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 		{
 			word[ind] = '\0';
-			*(argv + count) = _strdup(word);
+			*(argv + count) = strdup(word);
 			ind = 0;
 			count++;
 		}
