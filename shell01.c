@@ -11,17 +11,24 @@ bool ismultiple_command(char *argv[])
 	char *str[] = {"||", "&&", ";"};
 	int m = 0, j;
 
+	print('e', __FILE__, __func__);
 	while (m < 3)
 	{
 		j = 0;
 		while (argv[j] != NULL)
 		{
 			if (strcmp(argv[j], str[m]) == 0)
+			{
+				printf("%s returning true\n", __func__);
+				print('r', __FILE__, __func__);
 				return (true);
+			}
 			j++;
 		}
 		m++;
 	}
+	printf("%s returning false\n", __func__);
+	print('r', __FILE__, __func__);
 	return (false);
 }
 
@@ -32,9 +39,10 @@ bool ismultiple_command(char *argv[])
  */
 bool iscommand(char **str, command *cmd)
 {
-	char *env, *chr1, *patharr[ARR_SIZE];
+	char *env, *chr1, *chr2, *patharr[ARR_SIZE];
 	int i, j, len, diff = 0;
 
+	print('e', __FILE__, __func__);
 	env = _getenv("PATH", cmd);
 	createargv(patharr, env, ':', cmd);
 	for (i = 0; patharr[i] != NULL; i++)
@@ -48,11 +56,14 @@ bool iscommand(char **str, command *cmd)
 				diff--;
 				continue;
 			}
-			chr1 = patharr[i];
-			strjn(&chr1, "/", cmd);
-			strjn(&chr1, *str, cmd);
+			chr2 = patharr[i];
+			strjn(&chr2, "/");
+			chr1 = chr2;
+			strjn(&chr1, *str);
+			free(chr2);
 			if (isexecutable(chr1))
 				break;
+			free(chr1);
 			chr1 = NULL;
 			break;
 		}
@@ -61,24 +72,31 @@ bool iscommand(char **str, command *cmd)
 		if (chr1 != NULL)
 		{
 			errno = 0;
+			free(*str);
 			*str = chr1;
+			printf("str: %s\n", *str);
 			break;
 		}
 	}
+	printf("returning %s\n", chr1);
+	printf("%s returning true\n", __func__);
+	print('r', __FILE__, __func__);
 	if (diff == 0 || chr1 != NULL)
 		return (true);
+	printf("%s returning false\n", __func__);
 	return (false);
 }
 
 /**
  * add_to_history - add a pointer to th history
  * @str: pointer to memory location
- */
+ * \
 void add_to_hist(char **str, command *cmd)
 {
 	char **list2;
 	int i;
 
+	print('e', __FILE__, __func__);
 	if (cmd->hist_count == cmd->max_count - 1)
 	{
 		cmd->max_count += ARR_SIZE;
@@ -95,7 +113,8 @@ void add_to_hist(char **str, command *cmd)
 	cmd->list[cmd->hist_count] = *str;
 	cmd->hist_count += 1;
 	cmd->list[cmd->hist_count] = NULL;
-}
+	print('r', __FILE__, __func__);
+}*/
 
 /**
  * _strcmp - compares two string for similarity
@@ -107,12 +126,18 @@ int _strcmp(char *str1, char *str2)
 {
 	int i;
 
+	print('e', __FILE__, __func__);
+	printf("str in: %s\nstr in: %s\n", str1, str2);
 	if (_strlen(str1) != _strlen(str2))
 		return (-1);
 	for (i = 0; i < _strlen(str1); i++)
 	{
 		if (str1[i] != str2[i])
+		{
+			print('r', __FILE__, __func__);
 			return (-1);
+		}
 	}
+	print('r', __FILE__, __func__);
 	return (0);
 }

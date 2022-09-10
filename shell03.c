@@ -6,41 +6,56 @@
  */
 void is_exit(int num, command *cmd)
 {
-	free_hist_end(cmd);
+	free_onexit(cmd);
 	exit(num);
 }
 
+void free_argv2(command *cmd)
+{
+	int i;
+	
+	for (i = 0; i < 50; i++)
+		free(cmd->argv2[i]);
+	cmd->argv2 = malloc(50 * sizeof(char *));
+	if (cmd->argv2 == NULL)
+	{
+		perror(cmd->p_name);
+		exit(EXIT_FAILURE);
+	}
+	for (i = 0; i < 50; i++)
+		cmd->argv2[i] = NULL;
+}
 /**
  * free_hist - frees the memory of pointers
  */
-void free_hist(command *cmd)
+void free_half(command *cmd)
 {
-	int i = 0;
-	char *list[ARR_SIZE];
+	int i;
 
-	while(cmd->list[i] != NULL)
-	{
-		free(cmd->list[i]);
-		cmd->list[i] = NULL;
-		i++;
-	}
-	cmd->hist_count = 0;
-	cmd->max_count = ARR_SIZE;
-	cmd->list = list;
 	for (i = 0; i < ARR_SIZE; i++)
-		cmd->list[i] = NULL;
+	{
+		free(cmd->argv1[i]);
+		cmd->argv1[i] = NULL;
+	}
+	for (i = 0; i < 50; i++)
+	{
+		free(cmd->argv2[i]);
+		cmd->argv2[i] = NULL;
+	}
 }
 
 /**
  * free_hist_end - frees memory at the end of the function
  */
-void free_hist_end(command *cmd)
+void free_onexit(command *cmd)
 {
-	int i = 0;
+	int i;
 
-	while (cmd->list[i] != NULL)
+	for (i = 0; i < ARR_SIZE; i++)
 	{
-		free(cmd->list[i]);
-		i++;
+		free(cmd->env[i]);
+		free(cmd->argv1[i]);
 	}
+	for (i = 0; i < 50; i++)
+		free(cmd->argv2[i]);
 }

@@ -13,6 +13,7 @@ int process_file(char *file, command *cmd)
 	FILE *op;
 	int ret;
 
+	print('e', __FILE__, __func__);
 	op = fopen(file, "r");
 	if (op == NULL)
 	{
@@ -34,6 +35,7 @@ int process_file(char *file, command *cmd)
 		}
 	}
 	fclose(op);
+	print('r', __FILE__, __func__);
 	return (EXIT_SUCCESS);
 }
 

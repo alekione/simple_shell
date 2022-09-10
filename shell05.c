@@ -9,6 +9,7 @@ int process_multiple(char *argv[], command *cmd)
 	char *str, *iden[] = {"||", "&&", ";"};
 	bool isdone = false;
 
+	print('e', __FILE__, __func__);
 	while (true)
 	{
 		str = argv[i];
@@ -22,9 +23,15 @@ int process_multiple(char *argv[], command *cmd)
 				cmd->argv2[ind] = NULL;
 				ret = process_multiple2(cmd);
 				if (ret == EXIT_FAILURE && j == 1)
+				{
+					print('r', __FILE__, __func__);
 					return (EXIT_FAILURE);
+				}
 				if (ret == EXIT_SUCCESS && j == 0)
+				{	
+					print('r', __FILE__, __func__);
 					return (EXIT_SUCCESS);
+				}
 				if (isdone)
 					break;
 				start = i + 1;
@@ -33,6 +40,7 @@ int process_multiple(char *argv[], command *cmd)
 		if (str == NULL || isdone)
 			break;
 	}
+	print('e', __FILE__, __func__);
 	return (EXIT_SUCCESS);
 }
 

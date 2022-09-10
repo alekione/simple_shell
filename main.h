@@ -17,16 +17,14 @@ typedef struct command
 {
 	int argc;
 	char *p_name;
-	char *env[ARR_SIZE];
-	char *argv1[ARR_SIZE];
-	char *argv2[ARR_SIZE];
-	FILE *fd1;
-	FILE *fd2;
-	char **list;
-	int hist_count;
-	int max_count;
+	FILE *fd;
+	char **env;
+	char **argv1;
+	char **argv2;
 } command;
 
+void print(char, char *, const char *);
+void printarr(char **, char *);
 /*======== shell01.c ======== */
 
 bool iscommand(char **, command *);
@@ -38,15 +36,16 @@ int _strcmp(char *, char *);
 
 void createargv(char*[], char *, char, command *);
 char *_strdup(char *, command *);
-void strjn(char **, char *, command *);
+void strjn(char **, char *);
 void stripstr(char **);
 int _strlen(char *);
 
 /* ===== shell03.c ===== */
 
 void is_exit(int, command *);
-void free_hist(command *);
-void free_hist_end(command *);
+void free_argv2(command *);
+void free_half(command *);
+void free_onexit(command *);
 
 /* ======= shell04.c ======= */
 
@@ -81,7 +80,7 @@ char *_getenv(char *, command *);
 
 /* ======= main.c ====== */
 void sig_handler(int);
-void initialize(int, char *[], char *[], command *);
+void initialize(int, char *[], char *[], command **);
 void interactive(command *);
 
 #endif

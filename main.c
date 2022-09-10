@@ -9,14 +9,18 @@
 int main(int argc, char *argv[], char *env[])
 {
 	int ret;
-	command *cmd = (command *)malloc(sizeof(cmd));
+	command com, *cmd = &com;
 
-	initialize(argc, argv, env, cmd);
+	print('e', __FILE__, __func__);
+	initialize(argc, argv, env, &cmd);
 	if (argc == 1)
 	{
 		interactive(cmd);
 		return (EXIT_SUCCESS);
 	}
+	printf("argc = %d\n", argc);
+	printarr(cmd->argv1, "argv1");
+	printf("argv1[0] = %s\n", cmd->argv1[0]);
 	if (isreadable(cmd->argv1[0]) && !(iscommand(&cmd->argv1[0], cmd)))
 	{
 		process_file(cmd->argv1[0], cmd);
@@ -36,7 +40,8 @@ int main(int argc, char *argv[], char *env[])
 		if (ret == -1)
 			is_exit(errno, cmd);
 	}
-	free_hist_end(cmd);
+	free_onexit(cmd);
+	print('s', __FILE__, __func__);
 	return (ret);
 }
 
@@ -45,39 +50,39 @@ int main(int argc, char *argv[], char *env[])
  * @argc: argv counter
  * @argv: arguments passed to the program
  */
-void initialize(int argc, char *argv[], char *env[],command *cmd)
+void initialize(int argc, char *argv[], char *env[],command **cmd)
 {
 	int i;
 
-	cmd->p_name = argv[0];
-	cmd->argc = argc;
-	cmd->hist_count = 0;
-	cmd->max_count = ARR_SIZE;
-	
+	print('e', __FILE__, __func__);
+	(*cmd)->p_name = argv[0];
+	(*cmd)->argc = argc;
+	(*cmd)->env = malloc(ARR_SIZE * sizeof(char *));
+	(*cmd)->argv1 = malloc(ARR_SIZE * sizeof(char *));
+	(*cmd)->argv2 = malloc(50 * sizeof(char *));
+	if (((*cmd)->env == NULL) || ((*cmd)->argv1 == NULL) ||
+			((*cmd)->argv2 == NULL))
+	{
+		perror((*cmd)->p_name);
+		is_exit(errno, *cmd);
+	}
 	for (i = 0; i < ARR_SIZE; i++)
 	{
-		cmd->argv1[i] = NULL;
-		cmd->argv2[i] = NULL;
+		(*cmd)->argv1[i] = NULL;
+		(*cmd)->env[i] = NULL;
 	}
 	for (i = 0; argv[i] != NULL; i++)
-		cmd->argv1[i] = argv[i + 1];
-
-	cmd->list = malloc(ARR_SIZE * sizeof(char *));
-	if (cmd->list == NULL)
-	{
-		perror(cmd->p_name);
-		exit(EXIT_FAILURE);
-	}
-	cmd->list[0] = NULL;
+		(*cmd)->argv1[i] = argv[i + 1];
+	(*cmd)->argv1[i] = NULL;
 
 	for (i = 0; env[i] != NULL; i++)
-	{
-		cmd->env[i] = env[i];
-	}
-	cmd->env[i] = NULL;
+		(*cmd)->env[i] = env[i];
+	(*cmd)->env[i] = NULL;
 
 	if (argc == 1)
-		cmd->fd1 = stdin;
+		(*cmd)->fd = stdin;
+	printarr((*cmd)->argv1, "argv1");
+	print('l', __FILE__, __func__);
 }
 
 /**
@@ -89,11 +94,12 @@ void interactive(command *cmd)
 	ssize_t ret;
 	size_t count = 0;
 
+	print('e', __FILE__, __func__);
 	while (true)
 	{
 		/*signal(SIGINT, sig_handler);*/
-		write(1, prompt, 2);
-		ret = getline(&ptr, &count, cmd->fd1);
+		write(-1, prompt, 2);
+		ret = getline(&ptr, &count, cmd->fd);
 		if (ret == -1)
 			is_exit(errno, cmd);
 		stripstr(&ptr);
@@ -106,12 +112,15 @@ void interactive(command *cmd)
 					!(iscommand(&cmd->argv1[0], cmd)))
 			process_file(cmd->argv1[0], cmd);
 		else if (iscommand(&cmd->argv1[0], cmd))
+		{
+			printf("str: %s\n", cmd->argv1[0]);
 			execute_command(cmd->argv1, cmd);
+		}
 		else
 			execute_custom(cmd->argv1, cmd);
-		add_to_hist(&ptr, cmd);
-		free_hist(cmd);
+		free_half(cmd);
 	}
+	print('r', __FILE__, __func__);
 }
 
 /**
