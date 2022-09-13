@@ -10,20 +10,29 @@ void is_exit(int num, command *cmd)
 	exit(num);
 }
 
-void free_argv2(command *cmd)
+/**
+ * free_str - free memory of a given string
+ * @str: pointer to tstring location
+ */
+void free_str(char **str)
+{
+	free(*str);
+	*str = NULL;
+}
+
+/**
+ * free_argv2 - frees argv2 array
+ * @cmd: command struct data type
+ */
+void free_argv(char **argv)
 {
 	int i;
 	
-	for (i = 0; i < 50; i++)
-		free(cmd->argv2[i]);
-	cmd->argv2 = malloc(50 * sizeof(char *));
-	if (cmd->argv2 == NULL)
+	for (i = 0; argv[i] != NULL; i++)
 	{
-		perror(cmd->p_name);
-		exit(EXIT_FAILURE);
+		free(argv[i]);
+		argv[i] = NULL;
 	}
-	for (i = 0; i < 50; i++)
-		cmd->argv2[i] = NULL;
 }
 /**
  * free_hist - frees the memory of pointers
@@ -32,12 +41,12 @@ void free_half(command *cmd)
 {
 	int i;
 
-	for (i = 0; i < ARR_SIZE; i++)
+	for (i = 0; cmd->argv1[i] != NULL; i++)
 	{
 		free(cmd->argv1[i]);
 		cmd->argv1[i] = NULL;
 	}
-	for (i = 0; i < 50; i++)
+	for (i = 0; cmd->argv2[i] != NULL; i++)
 	{
 		free(cmd->argv2[i]);
 		cmd->argv2[i] = NULL;

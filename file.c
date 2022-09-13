@@ -7,13 +7,12 @@
  */
 int process_file(char *file, command *cmd)
 {
-	char *ptr = NULL, *argv[ARR_SIZE];
+	char *ptr = NULL;
 	size_t size = 0;
 	ssize_t rd;
 	FILE *op;
 	int ret;
 
-	print('e', __FILE__, __func__);
 	op = fopen(file, "r");
 	if (op == NULL)
 	{
@@ -22,20 +21,22 @@ int process_file(char *file, command *cmd)
 	}
 	while (true)
 	{
+		free_argv(cmd->argv2);
 		rd = getline(&ptr, &size, op);
 		if (rd == -1 || rd == 0)
 			break;
 		stripstr(&ptr);
-		createargv(argv, ptr, ' ', cmd);
-		ret = process_file2(argv, cmd);
+		createargv(cmd->argv2, ptr, ' ', cmd);
+		ret = process_file2(cmd->argv2, cmd);
 		if (ret == EXIT_FAILURE)
 		{
 			fclose(op);
+			free_argv(cmd->argv2);
 			return (EXIT_FAILURE);
 		}
 	}
 	fclose(op);
-	print('r', __FILE__, __func__);
+	free_argv(cmd->argv2);
 	return (EXIT_SUCCESS);
 }
 

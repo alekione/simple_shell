@@ -10,7 +10,6 @@ int cd(char *argv[], command *cmd)
 	char *cwd, *hme = "-", *dir = argv[1];
 	int cdir;
 
-	print('e', __FILE__, __func__);
 	if (_strcmp(dir, hme) == 0)
 		dir = _getenv("HOME", cmd);
 	if (access(dir, F_OK | X_OK) == -1)
@@ -27,7 +26,5 @@ int cd(char *argv[], command *cmd)
 		set_env("PWD", cwd, cmd);
 		return (EXIT_FAILURE);
 	}
-	printf("%s - return success\n", __func__);
-	print('r', __FILE__, __func__);
 	return (EXIT_SUCCESS);
 }

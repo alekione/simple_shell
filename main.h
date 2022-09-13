@@ -23,8 +23,8 @@ typedef struct command
 	char **argv2;
 } command;
 
-void print(char, char *, const char *);
-void printarr(char **, char *);
+/*void print(char, char *, const char *);*/
+/*void printarr(char **, char *);*/
 /*======== shell01.c ======== */
 
 bool iscommand(char **, command *);
@@ -34,7 +34,7 @@ int _strcmp(char *, char *);
 
 /* ======= shell02.c ======= */
 
-void createargv(char*[], char *, char, command *);
+void createargv(char **, char *, char, command *);
 char *_strdup(char *, command *);
 void strjn(char **, char *);
 void stripstr(char **);
@@ -43,7 +43,8 @@ int _strlen(char *);
 /* ===== shell03.c ===== */
 
 void is_exit(int, command *);
-void free_argv2(command *);
+void free_str(char **);
+void free_argv(char **);
 void free_half(command *);
 void free_onexit(command *);
 
@@ -55,7 +56,7 @@ int execute_custom(char *[], command *);
 /* ====== shell05.c ====== */
 
 int process_multiple(char *[], command *);
-int process_multiple2(command *);
+int process_multiple2(char *[], command *);
 
 /*  ===== file.c ======= */
 

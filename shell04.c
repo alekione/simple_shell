@@ -10,8 +10,6 @@ int execute_command(char *argv[], command *cmd)
 	int wstatus;
 	pid_t cpid;
 
-	printarr(argv, "execute-command");
-	print('e', __FILE__, __func__);
 	cpid = fork();
 	if (cpid == -1)
 	{
@@ -25,7 +23,6 @@ int execute_command(char *argv[], command *cmd)
 		exit(EXIT_FAILURE);
 	}
 	waitpid(cpid, &wstatus, 0);
-	print('r', __FILE__, __func__);
 	if (WIFEXITED(wstatus))
 		return (WEXITSTATUS(wstatus));
 	return (EXIT_SUCCESS);
@@ -42,7 +39,6 @@ int execute_custom(char *argv[], command *cmd)
 		*chd = "cd", *chr;
 	int i, ret;
 
-	print('e', __FILE__, __func__);
 	if (_strcmp(argv[0], ext) == 0)
 	{
 		if (argv[1] == NULL)
@@ -69,9 +65,7 @@ int execute_custom(char *argv[], command *cmd)
 	{
 		errno = 2;
 		perror(cmd->p_name);
-		print('r', __FILE__, __func__);
 		return (EXIT_FAILURE);
 	}
-	print('r', __FILE__, __func__);
 	return (ret);
 }

@@ -8,36 +8,37 @@
  */
 int set_env(char *name, char *val, command *cmd)
 {
-	char *str, *chr1, *envarr[ARR_SIZE];
+	char *str, *chr1;
 	int i;
 
-	print('e', __FILE__, __func__);
+	free_argv(cmd->argv2);
 	for (i = 0; cmd->env[i] != NULL; i++)
 	{
-		createargv(envarr, cmd->env[i], '=', cmd);
-		if (_strcmp(envarr[0], name) == 0)
+		createargv(cmd->argv2, cmd->env[i], '=', cmd);
+		if (_strcmp(cmd->argv2[0], name) == 0)
 			break;
+		free_argv(cmd->argv2);
 	}
 	if (cmd->env[i] == NULL)
 	{
 		strjn(&name, "=");
 		chr1 = name;
 		strjn(&chr1, val);
-		free(name);
+		free_str(&name);
 		cmd->env[i] = chr1;
 		cmd->env[i + 1] = NULL;
 	}
 	else
 	{
-		str = envarr[i];
+		str = cmd->argv2[i];
 		strjn(&str, "=");
 		chr1 = str;
 		strjn(&chr1, val);
-		free(str);
+		free_str(&str);
 		cmd->env[i] = chr1;
 	}
 	errno = 0;
-	print('r', __FILE__, __func__);
+	free_argv(cmd->argv2);
 	return (EXIT_SUCCESS);
 }
 
@@ -48,20 +49,20 @@ int set_env(char *name, char *val, command *cmd)
  */
 char *_getenv(char *name, command *cmd)
 {
-	int i = 0, ind = 0, j, len, len1 = _strlen(name);
-	char *str = malloc(ARR_SIZE * sizeof(char)), *argv[3];
+	int i = 0, ind = 0, j;
+	char *str = malloc(ARR_SIZE * sizeof(char));
 	bool isenv = false;
 
-	print('e', __FILE__, __func__);
 	for (; cmd->env[i] != NULL; i++)
 	{
-		len = strlen(cmd->env[i]);
+		if (cmd->env[i][0] != name[0])
+			continue;
 		ind = 0;
-		for (j = 0; j < len; j++)
+		for (j = 0; j < _strlen(cmd->env[i]); j++)
 		{
 			if (cmd->env[i][j] == '=')
 			{
-				if (j != len1)
+				if (j != _strlen(name))
 					break;
 				str[ind] = '\0';
 				if (_strcmp(str, name) == 0)
@@ -76,15 +77,15 @@ char *_getenv(char *name, command *cmd)
 		}
 		if (isenv)
 			break;
+/*		free_str(&str);*/
 	}
-	free(str);
-	createargv(argv, cmd->env[i], '=', cmd);
+	free_str(&str);
 	errno = 0;
-	printf("%s returning %s\n", __func__, argv[1]);
-	print('r', __FILE__, __func__);
 	if (cmd->env[i] == NULL)
 		return (NULL);
-	return (argv[1]);
+	free_argv(cmd->argv2);
+	createargv(cmd->argv2, cmd->env[i], '=', cmd);
+	return (cmd->argv2[1]);
 }
 
 /**
@@ -95,15 +96,16 @@ char *_getenv(char *name, command *cmd)
 int unset_env(char *name, command *cmd)
 {
 	int i;
-	char *envarr[ARR_SIZE];
 
-	print('e', __FILE__, __func__);
+	free_argv(cmd->argv2);
 	for (i = 0; cmd->env[i] != NULL; i++)
 	{
-		createargv(envarr, cmd->env[i], '=', cmd);
-		if (_strcmp(envarr[0], name) == 0)
+		createargv(cmd->argv2, cmd->env[i], '=', cmd);
+		if (_strcmp(cmd->argv2[0], name) == 0)
 			break;
+		free_argv(cmd->argv2);
 	}
+	free_argv(cmd->argv2);
 	errno = 0;
 	if (cmd->env[i] == NULL)
 		return (EXIT_FAILURE);
@@ -112,6 +114,5 @@ int unset_env(char *name, command *cmd)
 		cmd->env[i] = cmd->env[i + 1];
 		i++;
 	}
-	print('r', __FILE__, __func__);
 	return (EXIT_SUCCESS);
 }

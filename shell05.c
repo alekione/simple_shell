@@ -7,40 +7,32 @@ int process_multiple(char *argv[], command *cmd)
 {
 	int i = 0, j, k, start = 0, ind, ret;
 	char *str, *iden[] = {"||", "&&", ";"};
-	bool isdone = false;
+	char *arr[50];
 
-	print('e', __FILE__, __func__);
 	while (true)
 	{
 		str = argv[i];
 		for (j = 0; j < 3; j++)
 		{
-			if (_strcmp(iden[j], str) == 0 || str == NULL)
+			if (str == NULL || _strcmp(iden[j], str) == 0)
 			{
 				ind = 0;
 				for (k = start; k < i; k++, ind++)
-					cmd->argv2[ind] = argv[k];
-				cmd->argv2[ind] = NULL;
-				ret = process_multiple2(cmd);
+					arr[ind] = argv[k];
+				arr[ind] = NULL;
+				ret = process_multiple2(arr, cmd);
 				if (ret == EXIT_FAILURE && j == 1)
-				{
-					print('r', __FILE__, __func__);
 					return (EXIT_FAILURE);
-				}
 				if (ret == EXIT_SUCCESS && j == 0)
-				{	
-					print('r', __FILE__, __func__);
 					return (EXIT_SUCCESS);
-				}
-				if (isdone)
-					break;
 				start = i + 1;
+				break;
 			}
 		}
-		if (str == NULL || isdone)
+		if (str == NULL)
 			break;
+		i++;
 	}
-	print('e', __FILE__, __func__);
 	return (EXIT_SUCCESS);
 }
 
@@ -49,16 +41,16 @@ int process_multiple(char *argv[], command *cmd)
  * @argv: command array
  * Return: success or failure
  */
-int process_multiple2(command *cmd)
+int process_multiple2(char *argv[], command *cmd)
 {
 	int ret = 0;
 
-	if (isreadable(cmd->argv2[0]) && !(iscommand(&cmd->argv2[0], cmd)))
-		ret = process_file(cmd->argv2[0], cmd);
-	else if (iscommand(&cmd->argv2[0], cmd))
-		ret = execute_command(cmd->argv2, cmd);
+	if (isreadable(argv[0]) && !(iscommand(&argv[0], cmd)))
+		ret = process_file(argv[0], cmd);
+	else if (iscommand(&argv[0], cmd))
+		ret = execute_command(argv, cmd);
 	else 
-		ret = execute_custom(cmd->argv2, cmd);
+		ret = execute_custom(argv, cmd);
 	if (ret == EXIT_SUCCESS)
 		errno = 0;
 	return (ret);

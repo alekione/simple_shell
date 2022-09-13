@@ -11,7 +11,6 @@ void createargv(char **argv, char *str, char delim, command *cmd)
 	char word[ARR_SIZE], chr;
 	int i = 0, count = 0, ind = 0, len;
 
-	print('e', __FILE__, __func__);
 	if (str == NULL)
 	{
 		argv[0] = NULL;
@@ -24,7 +23,7 @@ void createargv(char **argv, char *str, char delim, command *cmd)
 		if ((chr == delim || chr == '\0' || chr == '#') && ind > 0)
 		{
 			word[ind] = '\0';
-			*(argv + count) = _strdup(word, cmd);
+			argv[count] = _strdup(word, cmd);
 			ind = 0;
 			count++;
 		}
@@ -36,9 +35,7 @@ void createargv(char **argv, char *str, char delim, command *cmd)
 		if (chr == '#')
 			break;
 	}
-	*(argv + count) = NULL;
-	printarr(argv, "createargv");
-	print('r', __FILE__, __func__);
+	argv[count] = NULL;
 }
 
 /**
@@ -51,8 +48,6 @@ char *_strdup(char *str, command *cmd)
 	int len, i;
 	char *ptr;
 
-	print('e', __FILE__, __func__);
-	printf("str in: %s\n", str);
 	len = _strlen(str);
 	ptr = (char *)malloc((len + 1) * sizeof(char));
 	if (ptr == NULL)
@@ -63,8 +58,6 @@ char *_strdup(char *str, command *cmd)
 	for (i = 0; i < len; i++)
 		ptr[i] = str[i];
 	ptr[len] = '\0';
-	printf("str out: %s\n", str);
-	print('r', __FILE__, __func__);
 	return (ptr);
 }
 
@@ -77,12 +70,10 @@ int _strlen(char *str)
 {
 	int len;
 
-	print('e', __FILE__, __func__);
 	if (str == NULL)
 		return (-1);
 	for (len = 0; str[len] != '\0'; len++)
 		;
-	print('r', __FILE__, __func__);
 	return (len);
 }
 
@@ -98,7 +89,6 @@ void stripstr(char **ptr)
 	char *str = *ptr;
 	int i = 0, j, len = _strlen(*ptr);
 
-	print('e', __FILE__, __func__);
 	if (len == 1)
 	{
 		*ptr = NULL;
@@ -118,7 +108,6 @@ void stripstr(char **ptr)
 		i++;
 	}
 	*ptr = str;
-	print('r', __FILE__, __func__);
 }
 
 /**
@@ -133,9 +122,6 @@ void strjn(char **str1, char *str2)
 	int len1, len2 = _strlen(str2);
 	int i;
 
-	print('e', __FILE__, __func__);
-	printf("string in: %s\n", ptr);
-	printf("string in: %s\n", str2);
 	if (str2 == NULL || len2 == 0)
 		return;
 	len1 = _strlen(ptr);
@@ -146,6 +132,4 @@ void strjn(char **str1, char *str2)
 		str[i + len1] = str2[i];
 	str[len1 + len2] = '\0';
 	*str1 = str;
-	printf("string out: %s\n", str);
-	print('r', __FILE__, __func__);
 }
